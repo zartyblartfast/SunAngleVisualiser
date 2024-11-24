@@ -168,411 +168,351 @@ function updateAllDiagrams(solarDeclination) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Load the sun_altitude_table.html content into #table-container
-    fetch('sun_altitude_table.html')
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('table-container').innerHTML = data;
-            initializeTableFunctionality(); // Initialize all functionality after content is loaded
-        })
-        .catch(error => console.error('Error loading table:', error));
+    const latitudeOverheadInput = document.getElementById('latitude-overhead-input');
+    const locationLatitudeInput = document.getElementById('location-latitude-input');
+    const locationLongitudeInput = document.getElementById('location-longitude-input');
+    const selectedDate = document.getElementById('selected-date');
+    const solarTime = document.getElementById('solar-time');
+    const localTime = document.getElementById('local-time');
 
-    function initializeTableFunctionality() {
-        const latitudeOverheadInput = document.getElementById('latitude-overhead-input');
-        const sunAngleTable = document.getElementById('sun-angle-table');
-        
-        // Add these new variables
-        const locationLatitudeInput = document.getElementById('location-latitude-input');
-        const locationLongitudeInput = document.getElementById('location-longitude-input');
-        const selectedDate = document.getElementById('selected-date');
-        const solarTime = document.getElementById('solar-time');
-        const localTime = document.getElementById('local-time');
+    // Set initial date/time values
+    const today = new Date();
+    selectedDate.value = today.toISOString().split('T')[0];
+    solarTime.value = '12:00';  // Start with solar noon
 
-        // Set initial date/time values
-        const today = new Date();
-        selectedDate.value = today.toISOString().split('T')[0];
-        solarTime.value = '12:00';  // Start with solar noon
+    // Set initial solar declination and elevation
+    const initialDate = new Date(selectedDate.value);
+    const initialDeclination = calculateSolarDeclination(initialDate);
+    document.getElementById('latitude-overhead-input').value = initialDeclination.toFixed(1);
+    
+    // Calculate initial solar elevation
+    const initialLatitude = parseFloat(locationLatitudeInput.value) || 0;
+    calculateSolarElevation(initialLatitude, initialDeclination);
 
-        // Set initial solar declination and elevation
-        const initialDate = new Date(selectedDate.value);
-        const initialDeclination = calculateSolarDeclination(initialDate);
-        document.getElementById('latitude-overhead-input').value = initialDeclination.toFixed(1);
-        
-        // Calculate initial solar elevation
-        const initialLatitude = parseFloat(locationLatitudeInput.value) || 0;
-        calculateSolarElevation(initialLatitude, initialDeclination);
+    // Make sure to trigger any existing event listeners
+    document.getElementById('latitude-overhead-input').dispatchEvent(new Event('input'));
 
-        // Make sure to trigger any existing event listeners
-        document.getElementById('latitude-overhead-input').dispatchEvent(new Event('input'));
-
-        // Calculate initial LST based on location and solar time
-        if (locationLatitudeInput.value && locationLongitudeInput.value) {
-            try {
-                const offset = getLocalTimeZoneOffset(
-                    selectedDate.value,
-                    parseFloat(locationLatitudeInput.value),
-                    parseFloat(locationLongitudeInput.value)
-                );
-                
-                // Calculate initial values
-                updateEoTDisplay();
-                
-                // Ensure we have valid input values before calculation
-                if (solarTime.value && offset !== undefined) {
-                    localTime.value = adjustTimeForOffset('12:00', offset, true);
-                    console.log('Initial local time set to:', localTime.value);
-                } else {
-                    localTime.value = '12:00';
-                    console.log('Using default local time due to invalid inputs');
-                }
-            } catch (error) {
-                console.error('Error during initial time setup:', error);
-                localTime.value = '12:00';  // Fallback to default
+    // Calculate initial LST based on location and solar time
+    if (locationLatitudeInput.value && locationLongitudeInput.value) {
+        try {
+            const offset = getLocalTimeZoneOffset(
+                selectedDate.value,
+                parseFloat(locationLatitudeInput.value),
+                parseFloat(locationLongitudeInput.value)
+            );
+            
+            // Calculate initial values
+            updateEoTDisplay();
+            
+            // Ensure we have valid input values before calculation
+            if (solarTime.value && offset !== undefined) {
+                localTime.value = adjustTimeForOffset('12:00', offset, true);
+                console.log('Initial local time set to:', localTime.value);
+            } else {
+                localTime.value = '12:00';
+                console.log('Using default local time due to invalid inputs');
             }
-        } else {
-            localTime.value = '12:00';  // Default if no location set
-            console.log('No location set, using default time');
+        } catch (error) {
+            console.error('Error during initial time setup:', error);
+            localTime.value = '12:00';  // Fallback to default
         }
+    } else {
+        localTime.value = '12:00';  // Default if no location set
+        console.log('No location set, using default time');
+    }
 
-        // Enable fields when both lat/long are entered
-        function checkLocationInputs() {
-            const hasLat = !isNaN(parseFloat(locationLatitudeInput.value));
-            const hasLong = !isNaN(parseFloat(locationLongitudeInput.value));
-            selectedDate.disabled = !(hasLat && hasLong);
-            solarTime.disabled = !(hasLat && hasLong);
-            localTime.disabled = !(hasLat && hasLong);
-        }
+    // Enable fields when both lat/long are entered
+    function checkLocationInputs() {
+        const hasLat = !isNaN(parseFloat(locationLatitudeInput.value));
+        const hasLong = !isNaN(parseFloat(locationLongitudeInput.value));
+        selectedDate.disabled = !(hasLat && hasLong);
+        solarTime.disabled = !(hasLat && hasLong);
+        localTime.disabled = !(hasLat && hasLong);
+    }
 
-        // Add location input listeners
-        locationLatitudeInput.addEventListener('input', checkLocationInputs);
-        locationLongitudeInput.addEventListener('input', checkLocationInputs);
+    // Add location input listeners
+    locationLatitudeInput.addEventListener('input', checkLocationInputs);
+    locationLongitudeInput.addEventListener('input', checkLocationInputs);
 
-        // Initial check
+    // Initial check
+    checkLocationInputs();
+
+    // Sync sliders with input fields
+    const latitudeOverheadSlider = document.getElementById('latitude-overhead-slider');
+
+    // Sync latitude slider and input
+    latitudeOverheadSlider.addEventListener('input', function() {
+        latitudeOverheadInput.value = this.value;
+        const latitude = parseFloat(locationLatitudeInput.value);
+        const solarDeclination = parseFloat(this.value);
+        calculateSolarElevation(latitude, solarDeclination);
+        updateAllDiagrams(solarDeclination);
+
+        // Use the inverse calculations to find the date
+        const currentDate = new Date(document.getElementById('selected-date').value);
+        const matchingDate = calculateDateFromDeclination(solarDeclination, currentDate.getFullYear());
+        document.getElementById('selected-date').value = matchingDate.toISOString().split('T')[0];
+    });
+    latitudeOverheadInput.addEventListener('input', function() {
+        latitudeOverheadSlider.value = this.value;
+    });
+
+    // Initial sync of sliders with input values
+    latitudeOverheadSlider.value = latitudeOverheadInput.value;
+
+    // Add after your existing slider setup
+    // Sync location latitude slider and input
+    const locationLatitudeSlider = document.getElementById('location-latitude-slider');
+    
+    locationLatitudeSlider.addEventListener('input', function(event) {
+        const sliderValue = event.target.value;
+        locationLatitudeInput.value = sliderValue;
+        const latitude = parseFloat(sliderValue);
+        const solarDeclination = parseFloat(latitudeOverheadInput.value);
+        
+        // Update solar elevation
+        const solarElevation = calculateSolarElevation(latitude, solarDeclination);
+        document.getElementById('solar-elevation-output').value = solarElevation.toFixed(1);
+        
+        // Update diagrams
+        updateAllDiagrams(solarDeclination);
         checkLocationInputs();
+    });
+    
+    locationLatitudeInput.addEventListener('input', function(event) {
+        const inputValue = event.target.value;
+        locationLatitudeSlider.value = inputValue;
+        const latitude = parseFloat(inputValue);
+        const solarDeclination = parseFloat(latitudeOverheadInput.value);
+        
+        // Update solar elevation
+        const solarElevation = calculateSolarElevation(latitude, solarDeclination);
+        document.getElementById('solar-elevation-output').value = solarElevation.toFixed(1);
+        
+        // Update diagrams
+        updateAllDiagrams(solarDeclination);
+        checkLocationInputs();
+    });
 
-        function calculateFlatEarthThetaAndObservedTheta() {
-            const latitudeOverhead = parseFloat(latitudeOverheadInput.value);
+    // Sync location longitude slider and input
+    const locationLongitudeSlider = document.getElementById('location-longitude-slider');
+    locationLongitudeSlider.addEventListener('input', function() {
+        locationLongitudeInput.value = this.value;
+        checkLocationInputs();
+        if (locationLatitudeInput.value) updateEoTDisplay();
+    });
+    locationLongitudeInput.addEventListener('input', function() {
+        locationLongitudeSlider.value = this.value;
+    });
 
-            // Get all rows in the table (excluding the header)
-            const rows = sunAngleTable.querySelectorAll('tbody tr');
+    // Initial sync of location sliders with input values
+    locationLatitudeSlider.value = locationLatitudeInput.value;
+    locationLongitudeSlider.value = locationLongitudeInput.value;
 
-            rows.forEach(row => {
-                const latitude = parseFloat(row.cells[0].textContent);
+    // Set up help icon popups
+    const helpIcons = document.querySelectorAll('.help-icon');
+    helpIcons.forEach(icon => {
+        icon.addEventListener('click', function(event) {
+            // Prevent the click event from bubbling up
+            event.stopPropagation();
 
-                // Calculate Observed Sun Altitude
-                const observedTheta = Math.abs(latitude - latitudeOverhead);
+            // Create or toggle the popup
+            let popup = document.querySelector('.popup');
+            if (!popup) {
+                popup = document.createElement('div');
+                popup.className = 'popup';
+                document.body.appendChild(popup);
+            }
 
-                // Update the second column (Sun Altitude)
-                const observedThetaCell = row.cells[1];
-                observedThetaCell.textContent = observedTheta.toFixed(2);
-                
-                if (observedTheta > 90) {
-                    observedThetaCell.classList.add('invalid-angle');
-                } else {
-                    observedThetaCell.classList.remove('invalid-angle');
+            // Set the help text from the data attribute
+            popup.textContent = icon.getAttribute('data-help');
+            const rect = icon.getBoundingClientRect();
+            popup.style.top = `${rect.bottom + window.scrollY}px`; // Position below the icon
+            popup.style.left = `${rect.left + window.scrollX}px`; // Align with the icon
+            popup.classList.toggle('active'); // Toggle visibility
+
+            // Close the popup when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!popup.contains(event.target) && !icon.contains(event.target)) {
+                    popup.classList.remove('active');
                 }
-            });
-        }
-
-        // Event listeners for input changes
-        latitudeOverheadInput.addEventListener('input', calculateFlatEarthThetaAndObservedTheta);
-
-        // Initial calculation on page load
-        calculateFlatEarthThetaAndObservedTheta();
-
-        // Sync sliders with input fields
-        const latitudeOverheadSlider = document.getElementById('latitude-overhead-slider');
-
-        // Sync latitude slider and input
-        latitudeOverheadSlider.addEventListener('input', function() {
-            latitudeOverheadInput.value = this.value;
-            const latitude = parseFloat(locationLatitudeInput.value);
-            const solarDeclination = parseFloat(this.value);
-            calculateSolarElevation(latitude, solarDeclination);
-            calculateFlatEarthThetaAndObservedTheta();
-            updateAllDiagrams(solarDeclination);
-
-            // Use the inverse calculations to find the date
-            const currentDate = new Date(document.getElementById('selected-date').value);
-            const matchingDate = calculateDateFromDeclination(solarDeclination, currentDate.getFullYear());
-            document.getElementById('selected-date').value = matchingDate.toISOString().split('T')[0];
+            }, { once: true });
         });
-        latitudeOverheadInput.addEventListener('input', function() {
-            latitudeOverheadSlider.value = this.value;
-        });
+    });
 
-        // Initial sync of sliders with input values
-        latitudeOverheadSlider.value = latitudeOverheadInput.value;
-
-        // Add after your existing slider setup
-        // Sync location latitude slider and input
-        const locationLatitudeSlider = document.getElementById('location-latitude-slider');
+    // Add these helper functions at the top of initializeTableFunctionality
+    function getLocalTimeZoneOffset(date, latitude, longitude) {
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const now = date ? new Date(date) : new Date();
+        const localTimeOffset = now.getTimezoneOffset() / 60; // Offset in hours
+        const estimatedOffset = longitude / 15;
         
-        locationLatitudeSlider.addEventListener('input', function(event) {
-            const sliderValue = event.target.value;
-            locationLatitudeInput.value = sliderValue;
-            const latitude = parseFloat(sliderValue);
-            const solarDeclination = parseFloat(latitudeOverheadInput.value);
-            
-            // Update solar elevation
-            const solarElevation = calculateSolarElevation(latitude, solarDeclination);
-            document.getElementById('solar-elevation-output').value = solarElevation.toFixed(1);
-            
-            // Update diagrams
-            updateAllDiagrams(solarDeclination);
-            checkLocationInputs();
-        });
+        console.log(`Time Zone: ${timeZone}, Local Offset: ${-localTimeOffset}`);
+        console.log(`Longitude-based Estimate: ${estimatedOffset}`);
+        return -localTimeOffset;
+    }
+    function adjustTimeForOffset(timeStr, offset, isSolarToLocal) {
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        const date = new Date(selectedDate.value);
+        const eot = calculateEoT(
+            date.toISOString(),
+            offset,
+            parseFloat(latitudeOverheadInput.value)
+        );
         
-        locationLatitudeInput.addEventListener('input', function(event) {
-            const inputValue = event.target.value;
-            locationLatitudeSlider.value = inputValue;
-            const latitude = parseFloat(inputValue);
-            const solarDeclination = parseFloat(latitudeOverheadInput.value);
-            
-            // Update solar elevation
-            const solarElevation = calculateSolarElevation(latitude, solarDeclination);
-            document.getElementById('solar-elevation-output').value = solarElevation.toFixed(1);
-            
-            // Update diagrams
-            updateAllDiagrams(solarDeclination);
-            checkLocationInputs();
-        });
-
-        // Sync location longitude slider and input
-        const locationLongitudeSlider = document.getElementById('location-longitude-slider');
-        locationLongitudeSlider.addEventListener('input', function() {
-            locationLongitudeInput.value = this.value;
-            checkLocationInputs();
-            if (locationLatitudeInput.value) updateEoTDisplay();
-        });
-        locationLongitudeInput.addEventListener('input', function() {
-            locationLongitudeSlider.value = this.value;
-        });
-
-        // Initial sync of location sliders with input values
-        locationLatitudeSlider.value = locationLatitudeInput.value;
-        locationLongitudeSlider.value = locationLongitudeInput.value;
-
-        // Set up help icon popups
-        const helpIcons = document.querySelectorAll('.help-icon');
-        helpIcons.forEach(icon => {
-            icon.addEventListener('click', function(event) {
-                // Prevent the click event from bubbling up
-                event.stopPropagation();
-
-                // Create or toggle the popup
-                let popup = document.querySelector('.popup');
-                if (!popup) {
-                    popup = document.createElement('div');
-                    popup.className = 'popup';
-                    document.body.appendChild(popup);
-                }
-
-                // Set the help text from the data attribute
-                popup.textContent = icon.getAttribute('data-help');
-                const rect = icon.getBoundingClientRect();
-                popup.style.top = `${rect.bottom + window.scrollY}px`; // Position below the icon
-                popup.style.left = `${rect.left + window.scrollX}px`; // Align with the icon
-                popup.classList.toggle('active'); // Toggle visibility
-
-                // Close the popup when clicking outside
-                document.addEventListener('click', function(event) {
-                    if (!popup.contains(event.target) && !icon.contains(event.target)) {
-                        popup.classList.remove('active');
-                    }
-                }, { once: true });
-            });
-        });
-
-        // Add collapsible table functionality
-        const expandButton = document.querySelector('.expand-button');
-        const tableSection = document.querySelector('.data-table-section');
+        // Convert everything to minutes for more precise calculations
+        const totalInputMinutes = hours * 60 + minutes;
+        const offsetMinutes = offset * 60;
         
-        if (expandButton && tableSection) {  // Make sure elements exist
-            expandButton.addEventListener('click', () => {
-                tableSection.classList.toggle('expanded');
-                expandButton.textContent = tableSection.classList.contains('expanded') 
-                    ? 'Hide Table' 
-                    : 'View Table';
-            });
+        let newTotalMinutes;
+        if (isSolarToLocal) {
+            // Solar to Local: add both offset and EoT
+            newTotalMinutes = totalInputMinutes + offsetMinutes + eot;
+        } else {
+            // Local to Solar: subtract offset and EoT
+            newTotalMinutes = totalInputMinutes - offsetMinutes - eot;
         }
+        
+        console.log(`Time Adjustment Details:
+            Input time: ${hours}:${minutes} (${totalInputMinutes} minutes)
+            TZ Offset: ${offset}h (${offsetMinutes} minutes)
+            EoT: ${eot} minutes
+            Direction: ${isSolarToLocal ? 'Solar→Local' : 'Local→Solar'}
+            Calculation: ${totalInputMinutes} ${isSolarToLocal ? '+' : '-'} ${offsetMinutes} ${isSolarToLocal ? '+' : '-'} ${eot} = ${newTotalMinutes}
+        `);
+        
+        // Handle day wraparound
+        while (newTotalMinutes >= 1440) newTotalMinutes -= 1440;  // 24 * 60
+        while (newTotalMinutes < 0) newTotalMinutes += 1440;
+        
+        // Calculate hours and minutes, ensuring minutes don't exceed 59
+        let newHours = Math.floor(newTotalMinutes / 60);
+        let newMinutes = Math.round((newTotalMinutes % 60));
+        
+        // Handle case where minutes round to 60
+        if (newMinutes === 60) {
+            newHours += 1;
+            newMinutes = 0;
+            if (newHours === 24) newHours = 0;
+        }
+        
+        // Verify valid numbers
+        if (isNaN(newHours) || isNaN(newMinutes) || 
+            newHours < 0 || newHours > 23 || 
+            newMinutes < 0 || newMinutes > 59) {
+            console.error('Invalid time calculation:', { newHours, newMinutes, newTotalMinutes });
+            return '12:00'; // Return a default time instead of invalid display
+        }
+        
+        return `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
+    }
 
-        // Add these helper functions at the top of initializeTableFunctionality
-        function getLocalTimeZoneOffset(date, latitude, longitude) {
-            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const now = date ? new Date(date) : new Date();
-            const localTimeOffset = now.getTimezoneOffset() / 60; // Offset in hours
-            const estimatedOffset = longitude / 15;
-            
-            console.log(`Time Zone: ${timeZone}, Local Offset: ${-localTimeOffset}`);
-            console.log(`Longitude-based Estimate: ${estimatedOffset}`);
-            return -localTimeOffset;
+    // Add these event listeners after the initial date/time setup
+    solarTime.addEventListener('input', function() {
+        if (locationLatitudeInput.value && locationLongitudeInput.value) {
+            const offset = getLocalTimeZoneOffset(
+                selectedDate.value,
+                parseFloat(locationLatitudeInput.value),
+                parseFloat(locationLongitudeInput.value)
+            );
+            localTime.value = adjustTimeForOffset(this.value, offset, true);
+            updateEoTDisplay();
         }
-        function adjustTimeForOffset(timeStr, offset, isSolarToLocal) {
-            const [hours, minutes] = timeStr.split(':').map(Number);
-            const date = new Date(selectedDate.value);
+    });
+
+    localTime.addEventListener('input', function() {
+        if (locationLatitudeInput.value && locationLongitudeInput.value) {
+            const offset = getLocalTimeZoneOffset(
+                selectedDate.value,
+                parseFloat(locationLatitudeInput.value),
+                parseFloat(locationLongitudeInput.value)
+            );
+            
+            console.log(`Local Time Change:
+                Input Local Time: ${this.value}
+                Current Solar Time: ${solarTime.value}
+                TZ Offset: ${offset}
+                About to call adjustTimeForOffset...
+            `);
+            
+            // Let's try just the timezone offset first
+            let newSolarTime = adjustTimeForOffset(this.value, -offset, false);
+            console.log(`Calculated new Solar Time: ${newSolarTime}`);
+            
+            solarTime.value = newSolarTime;
+            updateEoTDisplay();
+        }
+    });
+
+    // Add this after the solar time and local time event listeners
+    selectedDate.addEventListener('input', function() {
+        if (locationLatitudeInput.value && locationLongitudeInput.value) {
+            const offset = getLocalTimeZoneOffset(
+                this.value,
+                parseFloat(locationLatitudeInput.value),
+                parseFloat(locationLongitudeInput.value)
+            );
+            localTime.value = adjustTimeForOffset(solarTime.value, offset, true);
+            updateEoTDisplay();
+        }
+    });
+
+    // Add this with the other helper functions
+    function updateEoTDisplay() {
+        const date = new Date(selectedDate.value);
+        if (locationLatitudeInput.value && locationLongitudeInput.value) {
+            const tzOffset = getLocalTimeZoneOffset(
+                selectedDate.value,
+                parseFloat(locationLatitudeInput.value),
+                parseFloat(locationLongitudeInput.value)
+            );
+            
             const eot = calculateEoT(
                 date.toISOString(),
-                offset,
+                tzOffset,
                 parseFloat(latitudeOverheadInput.value)
             );
             
-            // Convert everything to minutes for more precise calculations
-            const totalInputMinutes = hours * 60 + minutes;
-            const offsetMinutes = offset * 60;
+            // Format EoT as mm:ss with sign
+            const eotSign = eot >= 0 ? '+' : '-';
+            const absEot = Math.abs(eot);
+            const eotMinutes = Math.floor(absEot);
+            const eotSeconds = Math.round((absEot - eotMinutes) * 60);
             
-            let newTotalMinutes;
-            if (isSolarToLocal) {
-                // Solar to Local: add both offset and EoT
-                newTotalMinutes = totalInputMinutes + offsetMinutes + eot;
-            } else {
-                // Local to Solar: subtract offset and EoT
-                newTotalMinutes = totalInputMinutes - offsetMinutes - eot;
-            }
+            // Format timezone offset with sign
+            const tzSign = tzOffset >= 0 ? '+' : '-';
+            const absTz = Math.abs(tzOffset);
             
-            console.log(`
-                Time Adjustment Details:
-                Input time: ${hours}:${minutes} (${totalInputMinutes} minutes)
-                TZ Offset: ${offset}h (${offsetMinutes} minutes)
-                EoT: ${eot} minutes
-                Direction: ${isSolarToLocal ? 'Solar→Local' : 'Local→Solar'}
-                Calculation: ${totalInputMinutes} ${isSolarToLocal ? '+' : '-'} ${offsetMinutes} ${isSolarToLocal ? '+' : '-'} ${eot} = ${newTotalMinutes}
-            `);
-            
-            // Handle day wraparound
-            while (newTotalMinutes >= 1440) newTotalMinutes -= 1440;  // 24 * 60
-            while (newTotalMinutes < 0) newTotalMinutes += 1440;
-            
-            // Calculate hours and minutes, ensuring minutes don't exceed 59
-            let newHours = Math.floor(newTotalMinutes / 60);
-            let newMinutes = Math.round((newTotalMinutes % 60));
-            
-            // Handle case where minutes round to 60
-            if (newMinutes === 60) {
-                newHours += 1;
-                newMinutes = 0;
-                if (newHours === 24) newHours = 0;
-            }
-            
-            // Verify valid numbers
-            if (isNaN(newHours) || isNaN(newMinutes) || 
-                newHours < 0 || newHours > 23 || 
-                newMinutes < 0 || newMinutes > 59) {
-                console.error('Invalid time calculation:', { newHours, newMinutes, newTotalMinutes });
-                return '12:00'; // Return a default time instead of invalid display
-            }
-            
-            return `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
+            document.getElementById('eot-display').textContent = 
+                `TZ: ${tzSign}${absTz}h, EoT: ${eotSign}${String(eotMinutes).padStart(2, '0')}:${String(eotSeconds).padStart(2, '0')}`;
+        } else {
+            document.getElementById('eot-display').textContent = 'TZ: 0h, EoT: 0:00';
         }
-
-        // Add these event listeners after the initial date/time setup
-        solarTime.addEventListener('input', function() {
-            if (locationLatitudeInput.value && locationLongitudeInput.value) {
-                const offset = getLocalTimeZoneOffset(
-                    selectedDate.value,
-                    parseFloat(locationLatitudeInput.value),
-                    parseFloat(locationLongitudeInput.value)
-                );
-                localTime.value = adjustTimeForOffset(this.value, offset, true);
-                updateEoTDisplay();
-            }
-        });
-
-        localTime.addEventListener('input', function() {
-            if (locationLatitudeInput.value && locationLongitudeInput.value) {
-                const offset = getLocalTimeZoneOffset(
-                    selectedDate.value,
-                    parseFloat(locationLatitudeInput.value),
-                    parseFloat(locationLongitudeInput.value)
-                );
-                
-                console.log(`
-                    Local Time Change:
-                    Input Local Time: ${this.value}
-                    Current Solar Time: ${solarTime.value}
-                    TZ Offset: ${offset}
-                    About to call adjustTimeForOffset...
-                `);
-                
-                // Let's try just the timezone offset first
-                let newSolarTime = adjustTimeForOffset(this.value, -offset, false);
-                console.log(`Calculated new Solar Time: ${newSolarTime}`);
-                
-                solarTime.value = newSolarTime;
-                updateEoTDisplay();
-            }
-        });
-
-        // Add this after the solar time and local time event listeners
-        selectedDate.addEventListener('input', function() {
-            if (locationLatitudeInput.value && locationLongitudeInput.value) {
-                const offset = getLocalTimeZoneOffset(
-                    this.value,
-                    parseFloat(locationLatitudeInput.value),
-                    parseFloat(locationLongitudeInput.value)
-                );
-                localTime.value = adjustTimeForOffset(solarTime.value, offset, true);
-                updateEoTDisplay();
-            }
-        });
-
-        // Add this with the other helper functions
-        function updateEoTDisplay() {
-            const date = new Date(selectedDate.value);
-            if (locationLatitudeInput.value && locationLongitudeInput.value) {
-                const tzOffset = getLocalTimeZoneOffset(
-                    selectedDate.value,
-                    parseFloat(locationLatitudeInput.value),
-                    parseFloat(locationLongitudeInput.value)
-                );
-                
-                const eot = calculateEoT(
-                    date.toISOString(),
-                    tzOffset,
-                    parseFloat(latitudeOverheadInput.value)
-                );
-                
-                // Format EoT as mm:ss with sign
-                const eotSign = eot >= 0 ? '+' : '-';
-                const absEot = Math.abs(eot);
-                const eotMinutes = Math.floor(absEot);
-                const eotSeconds = Math.round((absEot - eotMinutes) * 60);
-                
-                // Format timezone offset with sign
-                const tzSign = tzOffset >= 0 ? '+' : '-';
-                const absTz = Math.abs(tzOffset);
-                
-                document.getElementById('eot-display').textContent = 
-                    `TZ: ${tzSign}${absTz}h, EoT: ${eotSign}${String(eotMinutes).padStart(2, '0')}:${String(eotSeconds).padStart(2, '0')}`;
-            } else {
-                document.getElementById('eot-display').textContent = 'TZ: 0h, EoT: 0:00';
-            }
-        }
-
-        // Make sure this is only called once at the end
-        initializeGeocoding();
-
-        // Make sure initial values are calculated
-        calculateSolarElevation(
-            parseFloat(locationLatitudeInput.value) || 0,
-            parseFloat(latitudeOverheadInput.value) || 0
-        );
     }
 
-    // Add the event listener for date changes
-    document.getElementById('selected-date').addEventListener('input', function() {
-        const date = new Date(this.value);
-        const declination = calculateSolarDeclination(date);
-        
-        // Update latitude overhead input
-        document.getElementById('latitude-overhead-input').value = declination.toFixed(1);
-        
-        // Calculate and update solar elevation
-        const latitude = parseFloat(document.getElementById('location-latitude-input').value);
-        calculateSolarElevation(latitude, declination);
-        
-        // Update both diagrams
-        document.getElementById('latitude-overhead-input').dispatchEvent(new Event('input'));
-        createSolarAltitudeDiagram(latitude);
-    });
+    // Make sure this is only called once at the end
+    initializeGeocoding();
+
+    // Make sure initial values are calculated
+    calculateSolarElevation(
+        parseFloat(locationLatitudeInput.value) || 0,
+        parseFloat(latitudeOverheadInput.value) || 0
+    );
+});
+
+// Add the event listener for date changes
+document.getElementById('selected-date').addEventListener('input', function() {
+    const date = new Date(this.value);
+    const declination = calculateSolarDeclination(date);
+    
+    // Update latitude overhead input
+    document.getElementById('latitude-overhead-input').value = declination.toFixed(1);
+    
+    // Calculate and update solar elevation
+    const latitude = parseFloat(document.getElementById('location-latitude-input').value);
+    calculateSolarElevation(latitude, declination);
+    
+    // Update both diagrams
+    document.getElementById('latitude-overhead-input').dispatchEvent(new Event('input'));
+    createSolarAltitudeDiagram(latitude);
 });
