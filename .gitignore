@@ -41,6 +41,9 @@ out/
 .git/
 .gitattributes
 
+# Optional: specific to your project
+# Add any other patterns specific to your project here
+
 # Project specific files
 sun_altitude_table.html
 sunpath3d-core.min.js

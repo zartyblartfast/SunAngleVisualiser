@@ -1,2 +1,2 @@
-# SunAngleVisualiser
-View Sun Angles/Paths relative to latitude, day of year and time of day
+# SundialCalculator
+Observeable and verifiable sun angles can be seen at any given latitude, day of year and time of day. This web page compares the sun angles that would be observed at range of latitudes as explainable in the context of spherical rotating Earth with an axial tilt of 23.4 degrees and a slightly elliptical orbit around the distant sun compared with sun angles ona hypothetical flat Earth sundial

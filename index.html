@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <title>Sun Angles - Flat vs Spherical Earth</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://js.api.here.com/v3/3.1/mapsjs-core.js"></script>
+  <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js"></script>
+  <script src="https://js.api.here.com/v3/3.1/mapsjs-ui.js"></script>
+  <script src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.1/mapsjs-ui.css" />
+</head>
+<body>
+  <!-- Header section -->
+  <header>
+    <h1>Sun Angles Calculator</h1>
+    <p>Calculate sun angles from any location on Earth</p>
+  </header>
+
+  <main>
+    <div class="content-wrapper">
+        <!-- Left side: Input fields -->
+        <section class="new-inputs-section">
+            <div>
+                <label for="location-latitude-input">Location Latitude:</label>
+                <input type="range" id="location-latitude-slider" min="-90" max="90" value="51.3" step="0.1">
+                <input type="number" id="location-latitude-input" min="-90" max="90" step="0.1" value="51.3" title="Input location latitude">
+                <span class="help-icon" data-help="Input the latitude of your location in degrees. Valid range is from -90° (South Pole) to 90° (North Pole).">
+                    <i class="fas fa-question-circle"></i>
+                </span>
+            </div>
+            <div>
+                <label for="location-longitude-input">Location Longitude:</label>
+                <input type="range" id="location-longitude-slider" min="-180" max="180" value="0" step="0.1">
+                <input type="number" id="location-longitude-input" min="-180" max="180" step="0.1" value="0" title="Input location longitude">
+                <span class="help-icon" data-help="Input the longitude of your location in degrees. Valid range is from -180° (West) to 180° (East).">
+                    <i class="fas fa-question-circle"></i>
+                </span>
+            </div>
+            <div>
+                <label for="selected-date">Date:</label>
+                <input type="date" id="selected-date" disabled>
+                <span class="help-icon" data-help="Select a date to calculate solar positions. The date affects the sun's declination and day length.">
+                    <i class="fas fa-question-circle"></i>
+                </span>
+            </div>
+            <div>
+                <label for="solar-time">Solar Time:</label>
+                <input type="time" id="solar-time" disabled>
+                <span class="help-icon" data-help="Solar time based on the sun's position relative to your longitude. Solar noon is when the sun crosses your meridian.">
+                    <i class="fas fa-question-circle"></i>
+                </span>
+            </div>
+            <div>
+                <label for="local-time">Local Standard Time:</label>
+                <input type="time" id="local-time" disabled>
+                <span class="help-icon" data-help="Local time adjusted for your timezone offset from UTC. This is the time shown on clocks in your location.">
+                    <i class="fas fa-question-circle"></i>
+                </span>
+                <span id="eot-display">EoT: 0:00</span>
+            </div>
+            <div>
+                <label for="latitude-overhead-input">Latitude at which the sun is directly overhead:</label>
+                <input type="range" id="latitude-overhead-slider" min="-23.5" max="23.5" value="0" step="0.1">
+                <input type="number" id="latitude-overhead-input" min="-23.5" max="23.5" step="0.1" value="0" title="Input latitude for sun directly overhead">
+                <span class="help-icon" data-help="Input the latitude in degrees at which the Sun is directly overhead. The Sun can be directly overhead anywhere in the Tropic Zone from 23.5° N to 23.5° S. The valid range is from -23.5° to 23.5°.">
+                    <i class="fas fa-question-circle"></i>
+                </span>
+            </div>
+            <div>
+                <label for="solar-elevation-output">Solar Elevation/Altitude (degrees):</label>
+                <input type="number" id="solar-elevation-output" disabled value="0" step="0.1">
+                <span class="help-icon" data-help="The angle between the horizon (tangent line) and the sun's position in the sky. Positive values indicate the sun is above the horizon, negative values indicate the sun is below the horizon.">
+                    <i class="fas fa-question-circle"></i>
+                </span>
+            </div>
+        </section>
+
+        <!-- Right side: Map and search -->
+        <section class="map-section">
+            <div class="location-search-container">
+                <input type="text" id="location-search" placeholder="Enter location...">
+                <button id="search-button">Search</button>
+            </div>
+            <div id="map"></div>
+        </section>
+    </div>
+
+    <!-- Table section (below both inputs and map) -->
+    <section id="table-container"></section>
+
+    <!-- SVG Diagram Section -->
+    <section class="svg-diagram-section">
+        <div id="spherical-earth-diagram"></div>
+        <div id="solar-altitude-diagram"></div>
+    </section>
+  </main>
+
+  <!-- Reference to the main.js file -->
+  <script src="Equation_of_Time.js"></script>
+  <script src="geocoding.js"></script>
+  <script src="utilities.js" type="module"></script>
+  <script src="main.js" type="module"></script>
+  <script src="spherical_Earth_diagram.js" type="module"></script>
+  <script src="solar_altitude_diagram.js" type="module"></script>
+</body>
+</html>
