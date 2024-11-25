@@ -98,26 +98,25 @@ export function createAngleTestDiagram() {
     const solarElevation = calculateSolarElevation(latitude, solarDeclination);
 
     // Calculate tangent line angle based on latitude
-    const tangentBaseAngle = latitude;  // Angle from horizontal
+    // In solar altitude diagram, the tangent line is perpendicular to the radius at the latitude point
+    const tangentBaseAngle = latitude + 90;  // 90° from the radius line at the latitude point
 
-    // Draw tangent line from center
+    // Draw tangent line as full diameter
     const tangentLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
     const tangentRadians = (tangentBaseAngle * Math.PI) / 180;
-    const perpAngle = tangentBaseAngle + 90;  // Perpendicular to radius at latitude point
-    const perpRadians = (perpAngle * Math.PI) / 180;
-    const tangentLength = radius * 0.5;  // Half radius for tangent line length
-
-    tangentLine.setAttribute("x1", centerX - tangentLength * Math.cos(perpRadians));
-    tangentLine.setAttribute("y1", centerY - tangentLength * Math.sin(perpRadians));
-    tangentLine.setAttribute("x2", centerX + tangentLength * Math.cos(perpRadians));
-    tangentLine.setAttribute("y2", centerY + tangentLength * Math.sin(perpRadians));
+    
+    // Calculate both ends of the diameter using the angle
+    tangentLine.setAttribute("x1", centerX - radius * Math.cos(tangentRadians));
+    tangentLine.setAttribute("y1", centerY - radius * Math.sin(tangentRadians));
+    tangentLine.setAttribute("x2", centerX + radius * Math.cos(tangentRadians));
+    tangentLine.setAttribute("y2", centerY + radius * Math.sin(tangentRadians));
     tangentLine.setAttribute("stroke", "green");
     tangentLine.setAttribute("stroke-width", "1");
     tangentLine.setAttribute("stroke-dasharray", "4");
     svg.appendChild(tangentLine);
 
     // Calculate sun line angle using same logic as solar altitude diagram
-    const sunLineAngle = tangentBaseAngle + (90 - solarElevation);
+    const sunLineAngle = tangentBaseAngle + solarElevation;
 
     // Draw sun line from center
     const sunLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
