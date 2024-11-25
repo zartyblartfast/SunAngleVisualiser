@@ -97,26 +97,27 @@ export function createAngleTestDiagram() {
     // Calculate solar elevation
     const solarElevation = calculateSolarElevation(latitude, solarDeclination);
 
-    // Calculate tangent line angle based on latitude
-    // In solar altitude diagram, the tangent line is perpendicular to the radius at the latitude point
-    const tangentBaseAngle = latitude + 90;  // 90° from the radius line at the latitude point
+    // Calculate tangent line angle in SVG coordinates
+    // Formula: (θ - 90 + 360) mod 360
+    const tangentAngle = ((latitude - 90 + 360) % 360);
 
-    // Draw tangent line as full diameter
+    // Draw the tangent line at this exact angle
     const tangentLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    const tangentRadians = (tangentBaseAngle * Math.PI) / 180;
-    
-    // Calculate both ends of the diameter using the angle
+    const tangentRadians = (tangentAngle * Math.PI) / 180;
+
+    // In SVG, positive y is downward, so we need to negate the y coordinates
+    // to match the mathematical coordinate system
     tangentLine.setAttribute("x1", centerX - radius * Math.cos(tangentRadians));
-    tangentLine.setAttribute("y1", centerY - radius * Math.sin(tangentRadians));
+    tangentLine.setAttribute("y1", centerY + radius * Math.sin(tangentRadians));  // Note the + here
     tangentLine.setAttribute("x2", centerX + radius * Math.cos(tangentRadians));
-    tangentLine.setAttribute("y2", centerY + radius * Math.sin(tangentRadians));
+    tangentLine.setAttribute("y2", centerY - radius * Math.sin(tangentRadians));  // Note the - here
     tangentLine.setAttribute("stroke", "green");
     tangentLine.setAttribute("stroke-width", "1");
     tangentLine.setAttribute("stroke-dasharray", "4");
     svg.appendChild(tangentLine);
 
     // Calculate sun line angle using same logic as solar altitude diagram
-    const sunLineAngle = tangentBaseAngle + solarElevation;
+    const sunLineAngle = tangentAngle + solarElevation;
 
     // Draw sun line from center
     const sunLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -138,10 +139,17 @@ export function createAngleTestDiagram() {
             <span>Solar Declination: ${solarDeclination.toFixed(1)}°</span>
             <span>Solar Elevation: ${solarElevation.toFixed(1)}°</span>
             <br>
+            <strong>Angle Calculations:</strong>
+            <span>Input Latitude: ${latitude.toFixed(1)}°</span>
+            <span>Formula: (${latitude.toFixed(1)}° - 90° + 360°) mod 360°</span>
+            <span>Step 1: ${latitude.toFixed(1)}° - 90° = ${(latitude - 90).toFixed(1)}°</span>
+            <span>Step 2: ${(latitude - 90).toFixed(1)}° + 360° = ${(latitude - 90 + 360).toFixed(1)}°</span>
+            <span>Final Tangent SVG Angle: ${tangentAngle.toFixed(1)}°</span>
+            <br>
             <strong>Calculated Angles:</strong>
-            <span>Tangent Line SVG Angle: ${tangentBaseAngle.toFixed(1)}°</span>
+            <span>Tangent Line SVG Angle: ${tangentAngle.toFixed(1)}°</span>
             <span>Sun Line SVG Angle: ${sunLineAngle.toFixed(1)}°</span>
-            <span>Geometric Angle: ${Math.abs(sunLineAngle - tangentBaseAngle).toFixed(1)}°</span>
+            <span>Geometric Angle: ${Math.abs(sunLineAngle - tangentAngle).toFixed(1)}°</span>
         `;
     }
 }
