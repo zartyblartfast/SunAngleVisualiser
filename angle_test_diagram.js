@@ -98,31 +98,26 @@ export function createAngleTestDiagram() {
     const solarElevation = calculateSolarElevation(latitude, solarDeclination);
 
     // Calculate tangent line angle based on latitude
-    // In solar altitude diagram, tangent line is rotated counterclockwise from vertical by latitude
-    const tangentBaseAngle = 90 + latitude; // Start from 90° (vertical) and add latitude for counterclockwise rotation
+    const tangentBaseAngle = latitude;  // Angle from horizontal
 
-    // Draw tangent line as full diameter
+    // Draw tangent line from center
     const tangentLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
     const tangentRadians = (tangentBaseAngle * Math.PI) / 180;
-    // Calculate both ends of the diameter using the angle + 180° opposite
-    tangentLine.setAttribute("x1", centerX - radius * Math.cos(tangentRadians));
-    tangentLine.setAttribute("y1", centerY + radius * Math.sin(tangentRadians));
-    tangentLine.setAttribute("x2", centerX + radius * Math.cos(tangentRadians));
-    tangentLine.setAttribute("y2", centerY - radius * Math.sin(tangentRadians));
+    const perpAngle = tangentBaseAngle + 90;  // Perpendicular to radius at latitude point
+    const perpRadians = (perpAngle * Math.PI) / 180;
+    const tangentLength = radius * 0.5;  // Half radius for tangent line length
+
+    tangentLine.setAttribute("x1", centerX - tangentLength * Math.cos(perpRadians));
+    tangentLine.setAttribute("y1", centerY - tangentLength * Math.sin(perpRadians));
+    tangentLine.setAttribute("x2", centerX + tangentLength * Math.cos(perpRadians));
+    tangentLine.setAttribute("y2", centerY + tangentLength * Math.sin(perpRadians));
     tangentLine.setAttribute("stroke", "green");
     tangentLine.setAttribute("stroke-width", "1");
     tangentLine.setAttribute("stroke-dasharray", "4");
     svg.appendChild(tangentLine);
 
     // Calculate sun line angle using same logic as solar altitude diagram
-    const isSunInSouth = latitude > solarDeclination;
-    const isNorthernHemisphere = latitude >= 0;
-    
-    // Calculate sun line angle relative to the tangent line
-    const arcBaseAngle = isSunInSouth ? tangentBaseAngle + 180 : tangentBaseAngle;
-    const sunLineAngle = isNorthernHemisphere ? 
-        arcBaseAngle + solarElevation : 
-        arcBaseAngle - solarElevation;
+    const sunLineAngle = tangentBaseAngle + (90 - solarElevation);
 
     // Draw sun line from center
     const sunLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
