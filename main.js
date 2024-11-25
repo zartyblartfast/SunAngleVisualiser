@@ -185,6 +185,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const initialDeclination = calculateSolarDeclination(initialDate);
     document.getElementById('latitude-overhead-input').value = initialDeclination.toFixed(1);
     
+    // Get location latitude slider
+    const locationLatitudeSlider = document.getElementById('location-latitude-slider');
+    
+    // Set initial location latitude limits based on solar declination
+    const initialMin = initialDeclination - 90;
+    const initialMax = initialDeclination + 90;
+    locationLatitudeInput.min = initialMin;
+    locationLatitudeInput.max = initialMax;
+    locationLatitudeSlider.min = initialMin;
+    locationLatitudeSlider.max = initialMax;
+    
+    // Ensure location latitude is within limits
+    let currentLatitude = parseFloat(locationLatitudeInput.value) || 0;
+    if (currentLatitude > locationLatitudeInput.max) {
+        locationLatitudeInput.value = locationLatitudeInput.max;
+        locationLatitudeSlider.value = locationLatitudeInput.max;
+    } else if (currentLatitude < locationLatitudeInput.min) {
+        locationLatitudeInput.value = locationLatitudeInput.min;
+        locationLatitudeSlider.value = locationLatitudeInput.min;
+    }
+    
     // Calculate initial solar elevation
     const initialLatitude = parseFloat(locationLatitudeInput.value) || 0;
     calculateSolarElevation(initialLatitude, initialDeclination);
@@ -237,8 +258,45 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial check
     checkLocationInputs();
 
+    // Add constraint update to solar declination changes
+    latitudeOverheadInput.addEventListener('input', function() {
+        const solarDeclination = parseFloat(this.value);
+        const min = solarDeclination - 90;
+        const max = solarDeclination + 90;
+        
+        locationLatitudeInput.min = min;
+        locationLatitudeInput.max = max;
+        locationLatitudeSlider.min = min;
+        locationLatitudeSlider.max = max;
+        
+        const currentLatitude = parseFloat(locationLatitudeInput.value);
+        if (currentLatitude > max) {
+            locationLatitudeInput.value = max;
+            locationLatitudeSlider.value = max;
+        } else if (currentLatitude < min) {
+            locationLatitudeInput.value = min;
+            locationLatitudeSlider.value = min;
+        }
+    });
+
     // Sync sliders with input fields
     const latitudeOverheadSlider = document.getElementById('latitude-overhead-slider');
+
+    // Function to update latitude constraints
+    function updateLatitudeConstraints(solarDeclination) {
+        const negativeLimit = solarDeclination - 90;
+        const positiveLimit = solarDeclination + 90;
+        locationLatitudeInput.min = negativeLimit;
+        locationLatitudeInput.max = positiveLimit;
+        
+        // Ensure current latitude is within limits
+        let currentLatitude = parseFloat(locationLatitudeInput.value);
+        if (currentLatitude > positiveLimit) {
+            locationLatitudeInput.value = positiveLimit;
+        } else if (currentLatitude < negativeLimit) {
+            locationLatitudeInput.value = negativeLimit;
+        }
+    }
 
     // Sync latitude slider and input
     latitudeOverheadSlider.addEventListener('input', function() {
@@ -255,15 +313,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     latitudeOverheadInput.addEventListener('input', function() {
         latitudeOverheadSlider.value = this.value;
+        updateLatitudeConstraints(parseFloat(this.value));
     });
 
     // Initial sync of sliders with input values
     latitudeOverheadSlider.value = latitudeOverheadInput.value;
 
-    // Add after your existing slider setup
     // Sync location latitude slider and input
-    const locationLatitudeSlider = document.getElementById('location-latitude-slider');
-    
     locationLatitudeSlider.addEventListener('input', function(event) {
         const sliderValue = event.target.value;
         locationLatitudeInput.value = sliderValue;
