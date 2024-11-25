@@ -1,5 +1,6 @@
 import { createSolarAltitudeDiagram } from './solar_altitude_diagram.js';
 import { createSphericalEarthDiagram } from './spherical_Earth_diagram.js';
+import { createAngleTestDiagram } from './angle_test_diagram.js';
 
 const SCALE_FACTOR = 1.5;  // Global scaling constant for both diagrams
 
@@ -162,9 +163,10 @@ function updateAllDiagrams(solarDeclination) {
     const latitude = parseFloat(document.getElementById('location-latitude-input').value);
     calculateSolarElevation(latitude, solarDeclination);
     
-    // Update both diagrams
+    // Update all diagrams
     createSphericalEarthDiagram(solarDeclination);
     createSolarAltitudeDiagram(latitude);
+    createAngleTestDiagram();
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -188,6 +190,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Calculate initial solar elevation
     const initialLatitude = parseFloat(locationLatitudeInput.value) || 0;
     calculateSolarElevation(initialLatitude, initialDeclination);
+
+    // Create initial diagrams
+    createSphericalEarthDiagram(initialDeclination);
+    createSolarAltitudeDiagram(initialLatitude);
+    createAngleTestDiagram();
 
     // Make sure to trigger any existing event listeners
     document.getElementById('latitude-overhead-input').dispatchEvent(new Event('input'));
@@ -512,7 +519,7 @@ document.getElementById('selected-date').addEventListener('input', function() {
     const latitude = parseFloat(document.getElementById('location-latitude-input').value);
     calculateSolarElevation(latitude, declination);
     
-    // Update both diagrams
+    // Update all diagrams
     document.getElementById('latitude-overhead-input').dispatchEvent(new Event('input'));
     createSolarAltitudeDiagram(latitude);
 });
