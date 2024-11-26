@@ -93,10 +93,8 @@ export function createAngleTestDiagram() {
     // Get current inputs
     const latitude = parseFloat(document.getElementById('location-latitude-input').value) || 0;
     const solarDeclination = parseFloat(document.getElementById('latitude-overhead-input').value) || 0;
+    const solarElevationOutput = parseFloat(document.getElementById('solar-elevation-output').value) || 0;
     
-    // Calculate solar elevation
-    const solarElevation = calculateSolarElevation(latitude, solarDeclination);
-
     // Calculate tangent line angle in SVG coordinates
     // Formula: (θ - 90 + 360) mod 360
     const tangentAngle = ((latitude - 90 + 360) % 360);
@@ -116,8 +114,10 @@ export function createAngleTestDiagram() {
     tangentLine.setAttribute("stroke-dasharray", "4");
     svg.appendChild(tangentLine);
 
-    // Calculate sun line angle using same logic as solar altitude diagram
-    const sunLineAngle = tangentAngle + solarElevation;
+    // Calculate sun line angle by first adding solar elevation to latitude
+    const combinedAngle = latitude + solarElevationOutput;
+    // Then apply SVG angle mapping formula
+    const sunLineAngle = ((combinedAngle - 90 + 360) % 360);
 
     // Draw sun line from center
     const sunLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -137,7 +137,7 @@ export function createAngleTestDiagram() {
             <strong>Input Values:</strong>
             <span>Location Latitude: ${latitude.toFixed(1)}°</span>
             <span>Solar Declination: ${solarDeclination.toFixed(1)}°</span>
-            <span>Solar Elevation: ${solarElevation.toFixed(1)}°</span>
+            <span>Solar Elevation: ${solarElevationOutput.toFixed(1)}°</span>
             <br>
             <strong>Angle Calculations:</strong>
             <span>Input Latitude: ${latitude.toFixed(1)}°</span>
