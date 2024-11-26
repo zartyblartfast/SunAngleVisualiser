@@ -17,12 +17,12 @@ export function createAngleTestDiagram() {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("width", "100%");
     svg.setAttribute("height", "100%");
-    svg.setAttribute("viewBox", "0 0 400 400");
+    svg.setAttribute("viewBox", "0 0 400 400"); 
     container.appendChild(svg);
 
     // Center of the circle
     const centerX = 200;
-    const centerY = 200;
+    const centerY = 200; 
     const radius = 150;
 
     // Draw base circle
@@ -94,9 +94,10 @@ export function createAngleTestDiagram() {
     const solarDeclination = parseFloat(document.getElementById('latitude-overhead-input').value) || 0;
     const solarElevationOutput = parseFloat(document.getElementById('solar-elevation-output').value) || 0;
 
-    // Calculate tangent line angle in SVG coordinates
-    const tangentAngle = ((latitude - 90 + 360) % 360);
-    const tangentRadians = (tangentAngle * Math.PI) / 180;
+    // Calculate tangent line angles
+    const tangentGeometricAngle = latitude;  // Geometric angle is just the latitude
+    const tangentSVGAngle = ((latitude - 90 + 360) % 360);  // Convert to SVG coordinates
+    const tangentRadians = (tangentSVGAngle * Math.PI) / 180;
 
     // Draw the tangent line
     const tangentLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -105,8 +106,8 @@ export function createAngleTestDiagram() {
     tangentLine.setAttribute("x2", centerX + radius * Math.cos(tangentRadians));
     tangentLine.setAttribute("y2", centerY - radius * Math.sin(tangentRadians));
     tangentLine.setAttribute("stroke", "green");
-    tangentLine.setAttribute("stroke-width", "1");
-    tangentLine.setAttribute("stroke-dasharray", "4");
+    tangentLine.setAttribute("stroke-width", "3");
+    tangentLine.setAttribute("stroke-dasharray", "5,5");
     svg.appendChild(tangentLine);
 
     // Draw solar elevation line (independent of arc calculations)
@@ -130,7 +131,7 @@ export function createAngleTestDiagram() {
         offsetAngle,
         latitude,
         radius,
-        tangentAngle,
+        tangentGeometricAngle,
         tangentRadians,
         centerPoint: { x: centerX, y: centerY }
     });
@@ -191,6 +192,10 @@ export function createAngleTestDiagram() {
     
         console.log("Refined Arc Path Data:", pathData);
     
+        // Add shading between arc and circle circumference first
+        createArcShading(svg, centerX, centerY, radius, arcRadius, startX, startY, endX, endY, sweepFlag);
+
+        // Then create the arc path on top
         const arcPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
         arcPath.setAttribute("d", pathData);
         arcPath.setAttribute("stroke", "brown");
@@ -198,4 +203,72 @@ export function createAngleTestDiagram() {
         arcPath.setAttribute("fill", "none");
         svg.appendChild(arcPath);
     }
-}    
+
+    // Add informational labels at the bottom of the diagram
+    addDiagramLabels(
+        svg, 
+        svg.clientWidth || svg.parentNode.clientWidth, 
+        svg.clientHeight || svg.parentNode.clientHeight,
+        latitude,
+        solarDeclination,
+        null,
+        latitude,
+        solarElevationOutput
+    );
+}
+
+// Function to create shading between arc and circle circumference
+function createArcShading(svg, centerX, centerY, radius, arcRadius, startX, startY, endX, endY, sweepFlag) {
+    // Create a path that goes from start point, along arc, then along circle circumference
+    const largeArcFlag = 0; // Small arc as before
+    
+    // First part: Move to start and draw the arc (same as original arc)
+    const arcPath = `M ${startX} ${startY} A ${arcRadius} ${arcRadius} 0 ${largeArcFlag} ${sweepFlag} ${endX} ${endY}`;
+    
+    // Second part: Draw the circle circumference from end point back to start point
+    // Use small arc flag and same sweep direction to follow the shorter path around the circle
+    const circPath = `A ${radius} ${radius} 0 0 ${sweepFlag} ${startX} ${startY}`;
+    
+    // Combine the paths and close it
+    const pathData = `${arcPath} ${circPath} Z`;
+    
+    // Create and style the shading path
+    const shadingPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    shadingPath.setAttribute("d", pathData);
+    shadingPath.setAttribute("fill", "rgba(128, 128, 128, 0.2)"); // Light grey with 0.2 opacity
+    shadingPath.setAttribute("stroke", "none");
+    
+    // Add the shading path to the SVG
+    svg.appendChild(shadingPath);
+    
+    console.log("Shading Path Data:", pathData);
+}
+
+// Function to add informational labels to the diagram
+function addDiagramLabels(svg, width, height, latitude, solarDeclination, hourAngle, tangentAngle, solarElevation) {
+    const labelX = 10;  // Starting X position for labels
+    let labelY = height - 160;  // Moved up by increasing the offset from bottom
+    const lineHeight = 20;  // Spacing between lines
+    
+    const labels = [
+        `Location Latitude: ${latitude.toFixed(1)}°`,
+        `Solar Declination: ${solarDeclination.toFixed(1)}°`,
+        `Hour Angle: ${hourAngle?.toFixed(1) || 'N/A'}°`,
+        `Solar Altitude: ${solarElevation.toFixed(1)}°`,
+        `Zenith Angle: ${(90 - solarElevation).toFixed(1)}°`,
+        `SVG Solar Line Angle: ${((solarElevation + latitude - 90 + 360) % 360).toFixed(1)}°`,
+        `Tangent Line Geometric Angle: ${latitude.toFixed(1)}°`,
+        `Tangent Line SVG Angle: ${((latitude - 90 + 360) % 360).toFixed(1)}°`
+    ];
+
+    labels.forEach((text, index) => {
+        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        label.setAttribute("x", labelX);
+        label.setAttribute("y", labelY + (index * lineHeight));
+        label.setAttribute("fill", "black");
+        label.setAttribute("font-family", "Arial");
+        label.setAttribute("font-size", "12px");
+        label.textContent = text;
+        svg.appendChild(label);
+    });
+}
