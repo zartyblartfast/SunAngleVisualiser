@@ -145,7 +145,8 @@ function calculateSolarElevation(latitude, solarDeclination) {
     
     // When latitude and solar declination are equal, the sun is directly overhead (90°)
     // As they differ, the elevation decreases
-    const solarElevation = 90 - (latitude - solarDeclination);
+    let solarElevation = 90 - Math.abs(latitude - solarDeclination);
+    solarElevation = Math.max(0, Math.min(90, solarElevation));
     console.log('******* RESULT: solarElevation=' + solarElevation);
     
     const outputElement = document.getElementById('solar-elevation-output');
