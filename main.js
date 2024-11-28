@@ -1,6 +1,7 @@
 import { createSolarAltitudeDiagram } from './solar_altitude_diagram.js';
 import { createSphericalEarthDiagram } from './spherical_Earth_diagram.js';
 import { createAngleTestDiagram } from './angle_test_diagram.js';
+import { updateLatitudeConstraints } from './latitude_constraint.js';
 
 const SCALE_FACTOR = 1.5;  // Global scaling constant for both diagrams
 
@@ -153,6 +154,9 @@ function calculateSolarElevation(latitude, solarDeclination) {
     if (outputElement) {
         outputElement.value = solarElevation.toFixed(1);
         console.log('******* OUTPUT: solar-elevation-output=' + outputElement.value);
+        
+        // Update latitude constraints whenever solar elevation changes
+        updateLatitudeConstraints(solarDeclination);
     }
     
     return solarElevation;
