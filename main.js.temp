@@ -1,0 +1,93 @@
+import { createSolarAltitudeDiagram } from './solar_altitude_diagram.js';
+import { createSphericalEarthDiagram } from './spherical_Earth_diagram.js';
+
+const SCALE_FACTOR = 1.5;  // Global scaling constant for both diagrams
+
+// All the function definitions stay the same
+function calculateSolarDeclination(date) {
+    // ... existing function content ...
+}
+
+function calculateDateFromDeclination(targetDeclination, year) {
+    // ... existing function content ...
+}
+
+function calculateSolarElevation(latitude, solarDeclination) {
+    // ... existing function content ...
+}
+
+function updateAllDiagrams(solarDeclination) {
+    // ... existing function content ...
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const latitudeOverheadInput = document.getElementById('latitude-overhead-input');
+    const locationLatitudeInput = document.getElementById('location-latitude-input');
+    const locationLongitudeInput = document.getElementById('location-longitude-input');
+    const selectedDate = document.getElementById('selected-date');
+    const solarTime = document.getElementById('solar-time');
+    const localTime = document.getElementById('local-time');
+
+    // Set initial date/time values
+    const today = new Date();
+    selectedDate.value = today.toISOString().split('T')[0];
+    solarTime.value = '12:00';  // Start with solar noon
+
+    // Set initial solar declination and elevation
+    const initialDate = new Date(selectedDate.value);
+    const initialDeclination = calculateSolarDeclination(initialDate);
+    document.getElementById('latitude-overhead-input').value = initialDeclination.toFixed(1);
+    
+    // Calculate initial solar elevation
+    const initialLatitude = parseFloat(locationLatitudeInput.value) || 0;
+    calculateSolarElevation(initialLatitude, initialDeclination);
+
+    // Make sure to trigger any existing event listeners
+    document.getElementById('latitude-overhead-input').dispatchEvent(new Event('input'));
+
+    // Add event listener for solar declination changes
+    document.getElementById('latitude-overhead-input').addEventListener('input', function() {
+        const solarDeclination = Math.abs(parseFloat(this.value));
+        const latitudeInput = document.getElementById('location-latitude-input');
+        const latitudeSlider = document.getElementById('location-latitude-slider');
+        const allowedLatitudeRange = 90 - solarDeclination;
+        
+        // Update input limits
+        latitudeInput.setAttribute('min', -allowedLatitudeRange);
+        latitudeInput.setAttribute('max', allowedLatitudeRange);
+        latitudeSlider.setAttribute('min', -allowedLatitudeRange);
+        latitudeSlider.setAttribute('max', allowedLatitudeRange);
+        
+        // Ensure current value is within new limits
+        let currentLatitude = parseFloat(latitudeInput.value);
+        if (currentLatitude > allowedLatitudeRange) {
+            currentLatitude = allowedLatitudeRange;
+            latitudeInput.value = allowedLatitudeRange;
+            latitudeSlider.value = allowedLatitudeRange;
+        } else if (currentLatitude < -allowedLatitudeRange) {
+            currentLatitude = -allowedLatitudeRange;
+            latitudeInput.value = -allowedLatitudeRange;
+            latitudeSlider.value = -allowedLatitudeRange;
+        }
+
+        // Update diagrams with new values
+        updateAllDiagrams(solarDeclination);
+    });
+
+    // Add the event listener for date changes
+    document.getElementById('selected-date').addEventListener('input', function() {
+        const date = new Date(this.value);
+        const declination = calculateSolarDeclination(date);
+        
+        // Update latitude overhead input
+        document.getElementById('latitude-overhead-input').value = declination.toFixed(1);
+        
+        // Calculate and update solar elevation
+        const latitude = parseFloat(document.getElementById('location-latitude-input').value);
+        calculateSolarElevation(latitude, declination);
+        
+        // Update both diagrams
+        document.getElementById('latitude-overhead-input').dispatchEvent(new Event('input'));
+        createSolarAltitudeDiagram(latitude);
+    });
+});

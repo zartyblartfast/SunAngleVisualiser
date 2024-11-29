@@ -2,182 +2,43 @@ import { createSolarAltitudeDiagram } from './solar_altitude_diagram.js';
 import { createSphericalEarthDiagram } from './spherical_Earth_diagram.js';
 import { createAngleTestDiagram } from './angle_test_diagram.js';
 import { updateLatitudeConstraints } from './latitude_constraint.js';
+import { calculateSolarDeclination, calculateSolarElevation, calculateSolarAzimuth } from './solar_calculations.js';
 
 const SCALE_FACTOR = 1.5;  // Global scaling constant for both diagrams
 
-function calculateSolarDeclination(date) {
-    // Helper functions
-    const toRadians = degrees => degrees * Math.PI / 180;
-    const toDegrees = radians => radians * 180 / Math.PI;
-    const mod = (a, n) => a - Math.floor(a/n) * n;
-
-    // Get timezone offset in hours
-    const timeZone = -(new Date().getTimezoneOffset() / 60);
-
-    // Calculate Julian Day
-    const julianDay = date.getTime()/86400000 + 2440587.5 + timeZone/24;
-
-    // Calculate Julian Century
-    const julianCentury = (julianDay - 2451545) / 36525;
-
-    // Geometric Mean Longitude of Sun (deg)
-    const geomMeanLongSun = mod(280.46646 + 
-        julianCentury * (36000.76983 + julianCentury * 0.0003032), 360);
-
-    // Geometric Mean Anomaly of Sun (deg)
-    const geomMeanAnomSun = 357.52911 + 
-        julianCentury * (35999.05029 - 0.0001537 * julianCentury);
-
-    // Sun's Equation of Center
-    const sunEqOfCtr = Math.sin(toRadians(geomMeanAnomSun)) * 
-        (1.914602 - julianCentury * (0.004817 + 0.000014 * julianCentury)) +
-        Math.sin(toRadians(2 * geomMeanAnomSun)) * 
-        (0.019993 - 0.000101 * julianCentury) +
-        Math.sin(toRadians(3 * geomMeanAnomSun)) * 0.000289;
-
-    // Sun True Longitude (deg)
-    const sunTrueLong = geomMeanLongSun + sunEqOfCtr;
-
-    // Mean Obliquity of Ecliptic (deg)
-    const meanObliqEcliptic = 23 + (26 + 
-        ((21.448 - julianCentury * (46.815 + julianCentury * 
-            (0.00059 - julianCentury * 0.001813))))/60)/60;
-
-    // Obliquity Correction (deg)
-    const obliqCorr = meanObliqEcliptic + 
-        0.00256 * Math.cos(toRadians(125.04 - 1934.136 * julianCentury));
-
-    // Sun Apparent Longitude (deg)
-    const sunAppLong = sunTrueLong - 0.00569 - 
-        0.00478 * Math.sin(toRadians(125.04 - 1934.136 * julianCentury));
-
-    // Solar Declination (deg)
-    const solarDeclination = toDegrees(Math.asin(
-        Math.sin(toRadians(obliqCorr)) * Math.sin(toRadians(sunAppLong))
-    ));
-
-    console.log('Date:', date);
-    console.log('Solar Declination:', solarDeclination);
-
-    return solarDeclination;
-}
-
-function calculateDateFromDeclination(targetDeclination, year) {
-    // Helper functions
-    const toRadians = degrees => degrees * Math.PI / 180;
-    const toDegrees = radians => radians * 180 / Math.PI;
-    const mod = (a, n) => a - Math.floor(a/n) * n;
-
-    // Get timezone offset in hours
-    const timeZone = -(new Date().getTimezoneOffset() / 60);
-
-    // Since solar declination has two possible dates (except at solstices),
-    // we'll use the current date to determine which half of the year to use
-    const currentDate = new Date(document.getElementById('selected-date').value);
-    const isFirstHalf = currentDate.getMonth() < 6;
-
-    // The maximum declination is about 23.44 degrees (obliquity of the ecliptic)
-    const maxDeclination = 23.44;
-    if (Math.abs(targetDeclination) > maxDeclination) {
-        console.warn('Target declination exceeds maximum possible value');
-        targetDeclination = Math.sign(targetDeclination) * maxDeclination;
-    }
-
-    // Using the inverse of the declination formula:
-    // dec = asin(sin(obliquity) * sin(sunLong))
-    // Therefore: sunLong = asin(sin(dec) / sin(obliquity))
-    // This gives us the sun's longitude, which we can use to find the date
-
-    // First, find approximate sun longitude
-    const approxObliquity = 23.44; // Average obliquity in degrees
-    let sunLong = toDegrees(Math.asin(
-        Math.sin(toRadians(targetDeclination)) / 
-        Math.sin(toRadians(approxObliquity))
-    ));
-
-    // Adjust for the half of the year we want
-    if (isFirstHalf) {
-        if (sunLong < 0) sunLong += 360;
-    } else {
-        if (sunLong >= 0) sunLong = 180 - sunLong;
-        else sunLong = -180 - sunLong;
-    }
-
-    // Now search through the current year to find the closest match
-    const yearStart = new Date(year, 0, 1);
-    const yearEnd = new Date(year, 11, 31);
-    let bestDate = currentDate;
-    let minDiff = Math.abs(calculateSolarDeclination(currentDate) - targetDeclination);
-
-    // Search by 5-day increments first to get close
-    for (let testDate = new Date(yearStart); testDate <= yearEnd; testDate.setDate(testDate.getDate() + 5)) {
-        const testDeclination = calculateSolarDeclination(testDate);
-        const diff = Math.abs(testDeclination - targetDeclination);
-        if (diff < minDiff) {
-            minDiff = diff;
-            bestDate = new Date(testDate);
-        }
-    }
-
-    // Fine-tune by checking ±5 days around our best match
-    const fineStart = new Date(bestDate.setDate(bestDate.getDate() - 5));
-    const fineEnd = new Date(bestDate.setDate(bestDate.getDate() + 10));
-    
-    for (let testDate = new Date(fineStart); testDate <= fineEnd; testDate.setDate(testDate.getDate() + 1)) {
-        const testDeclination = calculateSolarDeclination(testDate);
-        const diff = Math.abs(testDeclination - targetDeclination);
-        if (diff < minDiff) {
-            minDiff = diff;
-            bestDate = new Date(testDate);
-        }
-    }
-
-    // Ensure we stay within the specified year
-    if (bestDate.getFullYear() !== year) {
-        bestDate.setFullYear(year);
-    }
-
-    return bestDate;
-}
-
-function calculateSolarElevation(latitude, solarDeclination) {
-    console.log('******* START calculateSolarElevation *******');
-    console.log('******* INPUTS: latitude=' + latitude + ', solarDeclination=' + solarDeclination);
-    
-    // When latitude and solar declination are equal, the sun is directly overhead (90°)
-    // As they differ, the elevation decreases
-    let solarElevation = 90 - Math.abs(latitude - solarDeclination);
-    solarElevation = Math.max(0, Math.min(90, solarElevation));
-    console.log('******* RESULT: solarElevation=' + solarElevation);
-    
-    const outputElement = document.getElementById('solar-elevation-output');
-    if (outputElement) {
-        outputElement.value = solarElevation.toFixed(1);
-        console.log('******* OUTPUT: solar-elevation-output=' + outputElement.value);
-        
-        // Update latitude constraints whenever solar elevation changes
-        updateLatitudeConstraints(solarDeclination);
-    }
-    
-    return solarElevation;
-}
-
-// Central update function for solar declination changes
-function updateAllDiagrams(solarDeclination) {
-    // Only update the input value if it's not being manually set
-    const latitudeOverheadInput = document.getElementById('latitude-overhead-input');
-    if (!latitudeOverheadInput.hasAttribute('data-manual')) {
-        latitudeOverheadInput.value = solarDeclination.toFixed(1);
-    }
-    
-    // Calculate and update solar elevation
+function updateSolarCalculations() {
+    const date = new Date(document.getElementById('selected-date').value);
     const latitude = parseFloat(document.getElementById('location-latitude-input').value);
-    calculateSolarElevation(latitude, solarDeclination);
+    const longitude = parseFloat(document.getElementById('location-longitude-input').value);
+    const timeZone = -(new Date().getTimezoneOffset() / 60);
+
+    // Calculate solar declination and elevation
+    const solarDeclination = calculateSolarDeclination(date);
+    const solarElevation = calculateSolarElevation(latitude, solarDeclination);
+
+    // Calculate solar azimuth
+    const { solarAzimuth } = calculateSolarAzimuth(date, latitude, longitude, timeZone);
     
-    // Update all diagrams
-    createSphericalEarthDiagram(solarDeclination);
-    createSolarAltitudeDiagram(latitude);
+    // Update azimuth display
+    const azimuthOutput = document.getElementById('solar-azimuth-output');
+    if (azimuthOutput) {
+        azimuthOutput.value = solarAzimuth.toFixed(1);
+    }
+
+    return { solarDeclination, solarElevation, solarAzimuth };
+}
+
+// Update the existing update function to use the new calculations
+function updateAllDiagrams() {
+    const { solarDeclination } = updateSolarCalculations();
+    
+    // Update diagrams
+    createSolarAltitudeDiagram(parseFloat(document.getElementById('location-latitude-input').value));
+    createSphericalEarthDiagram();
     createAngleTestDiagram();
+    
+    // Update constraints
+    updateLatitudeConstraints(solarDeclination);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -187,6 +48,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectedDate = document.getElementById('selected-date');
     const solarTime = document.getElementById('solar-time');
     const localTime = document.getElementById('local-time');
+    const latitudeOverheadSlider = document.getElementById('latitude-overhead-slider');
+    const locationLatitudeSlider = document.getElementById('location-latitude-slider');
+    const locationLongitudeSlider = document.getElementById('location-longitude-slider');
 
     // Set initial date/time values
     const today = new Date();
@@ -197,9 +61,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const initialDate = new Date(selectedDate.value);
     const initialDeclination = calculateSolarDeclination(initialDate);
     document.getElementById('latitude-overhead-input').value = initialDeclination.toFixed(1);
-    
-    // Get location latitude slider
-    const locationLatitudeSlider = document.getElementById('location-latitude-slider');
     
     // Set initial location latitude limits based on solar declination
     const initialMin = initialDeclination - 90;
@@ -221,11 +82,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Calculate initial solar elevation
     const initialLatitude = parseFloat(locationLatitudeInput.value) || 0;
-    calculateSolarElevation(initialLatitude, initialDeclination);
+    const initialSolarElevation = calculateSolarElevation(initialLatitude, initialDeclination);
+
+    // Update initial solar calculations including azimuth
+    updateSolarCalculations();
 
     // Create initial diagrams
-    createSphericalEarthDiagram(initialDeclination);
     createSolarAltitudeDiagram(initialLatitude);
+    createSphericalEarthDiagram();
     createAngleTestDiagram();
 
     // Make sure to trigger any existing event listeners
@@ -298,32 +162,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Sync sliders with input fields
-    const latitudeOverheadSlider = document.getElementById('latitude-overhead-slider');
-
-    // Function to update latitude constraints
-    function updateLatitudeConstraints(solarDeclination) {
-        const negativeLimit = solarDeclination - 90;
-        const positiveLimit = solarDeclination + 90;
-        locationLatitudeInput.min = negativeLimit;
-        locationLatitudeInput.max = positiveLimit;
-        
-        // Ensure current latitude is within limits
-        let currentLatitude = parseFloat(locationLatitudeInput.value);
-        if (currentLatitude > positiveLimit) {
-            locationLatitudeInput.value = positiveLimit;
-        } else if (currentLatitude < negativeLimit) {
-            locationLatitudeInput.value = negativeLimit;
-        }
-    }
-
-    // Sync latitude slider and input
     latitudeOverheadSlider.addEventListener('input', function() {
         latitudeOverheadInput.value = this.value;
         const latitude = parseFloat(locationLatitudeInput.value);
         const solarDeclination = parseFloat(this.value);
-        calculateSolarElevation(latitude, solarDeclination);
-        updateAllDiagrams(solarDeclination);
-
+        const solarElevation = calculateSolarElevation(latitude, solarDeclination);
+        updateAllDiagrams();
+        
         // Use the inverse calculations to find the date
         const currentDate = new Date(document.getElementById('selected-date').value);
         const matchingDate = calculateDateFromDeclination(solarDeclination, currentDate.getFullYear());
@@ -338,10 +183,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const latitude = parseFloat(locationLatitudeInput.value);
         
         // Calculate new solar elevation
-        calculateSolarElevation(latitude, solarDeclination);
+        const solarElevation = calculateSolarElevation(latitude, solarDeclination);
         
         // Update diagrams and constraints
-        updateAllDiagrams(solarDeclination);
+        updateAllDiagrams();
         updateLatitudeConstraints(solarDeclination);
     });
 
@@ -360,7 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('solar-elevation-output').value = solarElevation.toFixed(1);
         
         // Update diagrams
-        updateAllDiagrams(solarDeclination);
+        updateAllDiagrams();
         checkLocationInputs();
     });
     
@@ -375,12 +220,11 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('solar-elevation-output').value = solarElevation.toFixed(1);
         
         // Update diagrams
-        updateAllDiagrams(solarDeclination);
+        updateAllDiagrams();
         checkLocationInputs();
     });
 
     // Sync location longitude slider and input
-    const locationLongitudeSlider = document.getElementById('location-longitude-slider');
     locationLongitudeSlider.addEventListener('input', function() {
         locationLongitudeInput.value = this.value;
         checkLocationInputs();
@@ -583,34 +427,34 @@ document.addEventListener('DOMContentLoaded', function() {
         parseFloat(locationLatitudeInput.value) || 0,
         parseFloat(latitudeOverheadInput.value) || 0
     );
-});
 
-// Add the event listener for date changes
-document.getElementById('selected-date').addEventListener('input', function() {
-    console.log('******* Date changed');
-    const date = new Date(this.value);
-    const declination = calculateSolarDeclination(date);
-    console.log('******* Calculated declination:', declination);
-    
-    // Update latitude overhead input
-    const latitudeOverheadInput = document.getElementById('latitude-overhead-input');
-    const manualValue = latitudeOverheadInput.getAttribute('data-manual');
-    console.log('******* Manual value:', manualValue);
-    
-    // Only update if not manually set
-    if (!manualValue) {
-        latitudeOverheadInput.value = declination.toFixed(1);
-        console.log('******* Updated to calculated value:', latitudeOverheadInput.value);
-    } else {
-        console.log('******* Keeping manual value:', latitudeOverheadInput.value);
-    }
-    
-    // Calculate and update solar elevation
-    const latitude = parseFloat(document.getElementById('location-latitude-input').value);
-    const solarDeclination = parseFloat(latitudeOverheadInput.value);
-    calculateSolarElevation(latitude, solarDeclination);
-    
-    // Update all diagrams
-    updateAllDiagrams(solarDeclination);
-    createSolarAltitudeDiagram(latitude);
+    // Add the event listener for date changes
+    document.getElementById('selected-date').addEventListener('input', function() {
+        console.log('******* Date changed');
+        const date = new Date(this.value);
+        const declination = calculateSolarDeclination(date);
+        console.log('******* Calculated declination:', declination);
+        
+        // Update latitude overhead input
+        const latitudeOverheadInput = document.getElementById('latitude-overhead-input');
+        const manualValue = latitudeOverheadInput.getAttribute('data-manual');
+        console.log('******* Manual value:', manualValue);
+        
+        // Only update if not manually set
+        if (!manualValue) {
+            latitudeOverheadInput.value = declination.toFixed(1);
+            console.log('******* Updated to calculated value:', latitudeOverheadInput.value);
+        } else {
+            console.log('******* Keeping manual value:', latitudeOverheadInput.value);
+        }
+        
+        // Calculate and update solar elevation
+        const latitude = parseFloat(document.getElementById('location-latitude-input').value);
+        const solarDeclination = parseFloat(latitudeOverheadInput.value);
+        const solarElevation = calculateSolarElevation(latitude, solarDeclination);
+        
+        // Update all diagrams
+        updateAllDiagrams();
+        createSolarAltitudeDiagram(latitude);
+    });
 });
