@@ -171,40 +171,14 @@ export function createSolarAltitudeDiagram(latitude) {
     // Determine if sun is north or south of observer
     const isSunNorth = solarDeclination > latitude;
     
-    /**
-     * Maps solar elevation angles to SVG coordinate system angles
-     * @param {number} elevation - Solar elevation angle (degrees above horizon)
-     * @param {number} latitude - Observer's latitude in degrees
-     * @returns {number} SVG angle in degrees
-     */
-    function mapSolarAngleToSVG(elevation, latitude) {
-        // Start at 40° (which puts us on the tangent line, facing south)
-        const tangentReferenceAngle = 40;
-        
-        // SUBTRACT elevation to go UP from tangent
-        const mappedAngle = tangentReferenceAngle - elevation;
-        
-        console.log('Solar angle calculation:', {
-            inputs: { latitude, elevation },
-            steps: {
-                tangentReference: '40° (on tangent, facing south)',
-                subtractToGoUp: `40° - ${elevation}° = ${mappedAngle}°`,
-                final: mappedAngle
-            },
-            explanation: 'Using tangent as 0°, subtracting elevation to go up'
-        });
-
-        return mappedAngle;
-    }
-
     // Draw the solar elevation line
-    const mappedSolarAngle = mapSolarAngleToSVG(solarElevation, latitude);
+    const solarLineSVGAngle = -(solarDeclination % 360);  // Invert the angle
     
     const solarLineLength = radius * 0.4;
     const solarLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
     solarLine.setAttribute("x1", tangentStartX);
     solarLine.setAttribute("y1", tangentStartY);
-    solarLine.setAttribute("transform", `rotate(${mappedSolarAngle}, ${tangentStartX}, ${tangentStartY})`);
+    solarLine.setAttribute("transform", `rotate(${solarLineSVGAngle}, ${tangentStartX}, ${tangentStartY})`);
     solarLine.setAttribute("x2", tangentStartX + solarLineLength);
     solarLine.setAttribute("y2", tangentStartY);
     solarLine.setAttribute("stroke", "orange");

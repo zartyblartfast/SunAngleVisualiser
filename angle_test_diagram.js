@@ -62,6 +62,10 @@ export function createAngleTestDiagram() {
 
     drawDynamicSunLine(svg, centerX, centerY, radius, latitude, solarDeclination, solarElevationOutput);
 
+    // Calculate geometric angle and SVG angle directly from solar declination
+    const solarLineGeometricAngle = solarDeclination;
+    const solarLineSVGAngle = solarDeclination % 360;
+
     addDiagramLabels(
         svg,
         400,
@@ -71,8 +75,8 @@ export function createAngleTestDiagram() {
         solarElevationOutput,
         latitude,
         tangentSVGAngle,
-        latitude + solarElevationOutput,
-        ((latitude + solarElevationOutput - 90 + 360) % 360)
+        solarLineGeometricAngle,
+        solarLineSVGAngle
     );
 }
 
@@ -137,8 +141,8 @@ function drawArcAndShading(svg, centerX, centerY, radius, tangentSVGAngle, offse
 
 // Function to draw the solar altitude line
 function drawDynamicSunLine(svg, centerX, centerY, radius, latitude, solarDeclination, solarElevation) {
-    const sunGeometricAngle = latitude + (latitude > solarDeclination ? -solarElevation : solarElevation);
-    const sunSVGAngle = ((sunGeometricAngle - 90 + 360) % 360); // Convert to SVG system
+    // Use solar declination directly for SVG angle
+    const sunSVGAngle = solarDeclination % 360;
     const sunRadians = (sunSVGAngle * Math.PI) / 180;
 
     const endX = centerX + radius * 1.5 * Math.cos(sunRadians);
