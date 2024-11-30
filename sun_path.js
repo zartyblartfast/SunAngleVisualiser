@@ -3,7 +3,7 @@ import { OrbitControls } from 'https://cdn.skypack.dev/three@0.136.0/examples/js
 import { calculateSolarElevation, calculateSolarAzimuth, calculateSolarDeclination } from './solar_calculations.js';
 
 let scene, camera, renderer, controls;
-let celestialDome, groundPlane, sunPath, azimuthLine, elevationLine;
+let celestialDome, groundPlane, sunPath, azimuthLine, elevationLine, sunArc;
 
 export function initSunPathDiagram(containerId) {
     // Create scene
@@ -249,6 +249,16 @@ export function initSunPathDiagram(containerId) {
     elevationLine = new THREE.Line(elevationGeometry, elevationLineMaterial);
     scene.add(elevationLine);
 
+    // Create sun arc material
+    const arcMaterial = new THREE.MeshBasicMaterial({
+        color: 0xFFFF00,  // Yellow
+        transparent: true,
+        opacity: 0.2,
+        side: THREE.DoubleSide
+    });
+    sunArc = new THREE.Mesh(new THREE.BufferGeometry(), arcMaterial);
+    scene.add(sunArc);
+
     // Animation loop
     function animate() {
         requestAnimationFrame(animate);
@@ -312,19 +322,45 @@ export function updateSunPosition(altitude, azimuth) {
             radius * Math.cos(altitudeRad) * Math.cos(azimuthRad)   // Z component
         )
     ];
+
+    // Create arc geometry
+    const segments = 20;  // Number of segments in the arc
+    const arcPoints = [];
+    arcPoints.push(new THREE.Vector3(0, 0, 0));  // Center point
     
-    console.log('Line endpoints:', {
-        azimuth: {
-            x: azimuthLinePoints[1].x.toFixed(3),
-            y: azimuthLinePoints[1].y.toFixed(3),
-            z: azimuthLinePoints[1].z.toFixed(3)
-        },
-        elevation: {
-            x: elevationLinePoints[1].x.toFixed(3),
-            y: elevationLinePoints[1].y.toFixed(3),
-            z: elevationLinePoints[1].z.toFixed(3)
-        }
-    });
+    // Add points along the ground to the azimuth end
+    for (let i = 0; i <= segments; i++) {
+        const t = i / segments;
+        arcPoints.push(new THREE.Vector3(
+            t * azimuthLinePoints[1].x,
+            0,
+            t * azimuthLinePoints[1].z
+        ));
+    }
+    
+    // Add points along the dome to the elevation point
+    for (let i = segments; i >= 0; i--) {
+        const t = i / segments;
+        arcPoints.push(new THREE.Vector3(
+            elevationLinePoints[1].x * t,
+            elevationLinePoints[1].y * Math.sin(Math.PI * t / 2),
+            elevationLinePoints[1].z * t
+        ));
+    }
+    
+    // Create faces for the arc
+    const indices = [];
+    for (let i = 1; i < arcPoints.length - 1; i++) {
+        indices.push(0, i, i + 1);
+    }
+    
+    // Update the arc geometry
+    const arcGeometry = new THREE.BufferGeometry();
+    arcGeometry.setFromPoints(arcPoints);
+    arcGeometry.setIndex(indices);
+    arcGeometry.computeVertexNormals();
+    sunArc.geometry.dispose();
+    sunArc.geometry = arcGeometry;
     
     // Update both lines
     azimuthLine.geometry.setFromPoints(azimuthLinePoints);
