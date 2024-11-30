@@ -3,7 +3,7 @@ import { OrbitControls } from 'https://cdn.skypack.dev/three@0.136.0/examples/js
 import { calculateSolarElevation, calculateSolarAzimuth, calculateSolarDeclination } from './solar_calculations.js';
 
 let scene, camera, renderer, controls;
-let celestialDome, groundPlane, sunPath, azimuthLine;
+let celestialDome, groundPlane, sunPath, azimuthLine, elevationLine;
 
 export function initSunPathDiagram(containerId) {
     // Create scene
@@ -233,21 +233,21 @@ export function initSunPathDiagram(containerId) {
 
     // Create azimuth line
     const azimuthLineMaterial = new THREE.LineBasicMaterial({
-        color: 0xFFA500,  // Orange color
-        linewidth: 2,
-        transparent: true,
-        opacity: 0.8,
-        depthWrite: false,
-        depthTest: false
+        color: 0xFF0000,  // Red
+        linewidth: 2
     });
-
-    const azimuthLineGeometry = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(0, 0, -3)  // Initially pointing North
-    ]);
-    azimuthLine = new THREE.Line(azimuthLineGeometry, azimuthLineMaterial);
-    azimuthLine.renderOrder = 2;
+    const azimuthGeometry = new THREE.BufferGeometry();
+    azimuthLine = new THREE.Line(azimuthGeometry, azimuthLineMaterial);
     scene.add(azimuthLine);
+
+    // Create elevation line
+    const elevationLineMaterial = new THREE.LineBasicMaterial({
+        color: 0x00FF00,  // Green
+        linewidth: 2
+    });
+    const elevationGeometry = new THREE.BufferGeometry();
+    elevationLine = new THREE.Line(elevationGeometry, elevationLineMaterial);
+    scene.add(elevationLine);
 
     // Animation loop
     function animate() {
@@ -291,8 +291,9 @@ export function updateSunPosition(altitude, azimuth) {
         adjustedAzimuth: adjustedAzimuth
     });
 
+    const radius = 3;  // Same radius as used for the celestial dome
+
     // Update azimuth line - this should be on the ground plane (y=0)
-    const radius = 3;
     const azimuthLinePoints = [
         new THREE.Vector3(0, 0, 0),  // Center point
         new THREE.Vector3(
@@ -302,16 +303,35 @@ export function updateSunPosition(altitude, azimuth) {
         )
     ];
     
-    console.log('Azimuth line end point:', {
-        x: azimuthLinePoints[1].x.toFixed(3),
-        y: azimuthLinePoints[1].y.toFixed(3),
-        z: azimuthLinePoints[1].z.toFixed(3),
-        inputAzimuth: azimuth.toFixed(3),
-        adjustedAzimuth: adjustedAzimuth.toFixed(3)
+    // Update elevation line - starting from center and going up at the correct angle
+    const elevationLinePoints = [
+        new THREE.Vector3(0, 0, 0),  // Start from center
+        new THREE.Vector3(
+            radius * Math.cos(altitudeRad) * Math.sin(azimuthRad),  // X component
+            radius * Math.sin(altitudeRad),                         // Y component (height)
+            radius * Math.cos(altitudeRad) * Math.cos(azimuthRad)   // Z component
+        )
+    ];
+    
+    console.log('Line endpoints:', {
+        azimuth: {
+            x: azimuthLinePoints[1].x.toFixed(3),
+            y: azimuthLinePoints[1].y.toFixed(3),
+            z: azimuthLinePoints[1].z.toFixed(3)
+        },
+        elevation: {
+            x: elevationLinePoints[1].x.toFixed(3),
+            y: elevationLinePoints[1].y.toFixed(3),
+            z: elevationLinePoints[1].z.toFixed(3)
+        }
     });
     
+    // Update both lines
     azimuthLine.geometry.setFromPoints(azimuthLinePoints);
     azimuthLine.geometry.attributes.position.needsUpdate = true;
+    
+    elevationLine.geometry.setFromPoints(elevationLinePoints);
+    elevationLine.geometry.attributes.position.needsUpdate = true;
 }
 
 export function drawSunPath() {
