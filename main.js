@@ -37,12 +37,14 @@ function updateSolarCalculations() {
 
 // Update the existing update function to use the new calculations
 function updateAllDiagrams() {
-    const { solarDeclination } = updateSolarCalculations();
+    const { solarDeclination, solarAzimuth, solarZenith } = updateSolarCalculations();
     
     // Update diagrams
     createSolarAltitudeDiagram(parseFloat(document.getElementById('location-latitude-input').value));
     createSphericalEarthDiagram();
     createAngleTestDiagram();
+    updateSunPosition(solarAzimuth, 90 - solarZenith);
+    drawSunPath();
     
     // Update constraints
     updateLatitudeConstraints(solarDeclination);
