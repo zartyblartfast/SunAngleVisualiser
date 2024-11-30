@@ -3,7 +3,7 @@ import { OrbitControls } from 'https://cdn.skypack.dev/three@0.136.0/examples/js
 import { calculateSolarElevation, calculateSolarAzimuth, calculateSolarDeclination } from './solar_calculations.js';
 
 let scene, camera, renderer, controls;
-let celestialDome, groundPlane, sunPath, sunPoint;
+let celestialDome, groundPlane, sunPath, azimuthLine;
 
 export function initSunPathDiagram(containerId) {
     // Create scene
@@ -231,11 +231,23 @@ export function initSunPathDiagram(containerId) {
     westLabel.scale.set(0.5, 0.5, 1);
     scene.add(westLabel);
 
-    // Create sun point
-    const sunGeometry = new THREE.SphereGeometry(0.1, 16, 16);
-    const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-    sunPoint = new THREE.Mesh(sunGeometry, sunMaterial);
-    scene.add(sunPoint);
+    // Create azimuth line
+    const azimuthLineMaterial = new THREE.LineBasicMaterial({
+        color: 0xFFA500,  // Orange color
+        linewidth: 2,
+        transparent: true,
+        opacity: 0.8,
+        depthWrite: false,
+        depthTest: false
+    });
+
+    const azimuthLineGeometry = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 0, -3)  // Initially pointing North
+    ]);
+    azimuthLine = new THREE.Line(azimuthLineGeometry, azimuthLineMaterial);
+    azimuthLine.renderOrder = 2;
+    scene.add(azimuthLine);
 
     // Animation loop
     function animate() {
@@ -261,19 +273,45 @@ function onWindowResize() {
 }
 
 export function updateSunPosition(altitude, azimuth) {
-    if (!sunPoint) return;
-
+    console.log('Sun path receiving - altitude:', altitude, 'azimuth:', azimuth);
+    
     // Convert angles to radians
-    const altRad = altitude * Math.PI / 180;
-    const azRad = azimuth * Math.PI / 180;
+    const altitudeRad = altitude * Math.PI / 180;
+    
+    // For azimuth angle:
+    // Input: 180° = South, 183.6° = slightly west of south
+    // We need to invert the angle deviation from south to get correct east/west orientation
+    const angleFromSouth = azimuth - 180;  // positive means west of south
+    const adjustedAzimuth = -angleFromSouth;  // negative to get correct orientation
+    const azimuthRad = adjustedAzimuth * Math.PI / 180;
+    
+    console.log('Angle calculations:', {
+        inputAzimuth: azimuth,
+        angleFromSouth: angleFromSouth,
+        adjustedAzimuth: adjustedAzimuth
+    });
 
-    // Calculate position on celestial dome
+    // Update azimuth line - this should be on the ground plane (y=0)
     const radius = 3;
-    const x = radius * Math.cos(altRad) * Math.sin(azRad);
-    const y = radius * Math.sin(altRad);
-    const z = radius * Math.cos(altRad) * Math.cos(azRad);
-
-    sunPoint.position.set(x, y, z);
+    const azimuthLinePoints = [
+        new THREE.Vector3(0, 0, 0),  // Center point
+        new THREE.Vector3(
+            radius * Math.sin(azimuthRad),  // X component
+            0,                              // Y is always 0 (ground plane)
+            radius * Math.cos(azimuthRad)   // Z component
+        )
+    ];
+    
+    console.log('Azimuth line end point:', {
+        x: azimuthLinePoints[1].x.toFixed(3),
+        y: azimuthLinePoints[1].y.toFixed(3),
+        z: azimuthLinePoints[1].z.toFixed(3),
+        inputAzimuth: azimuth.toFixed(3),
+        adjustedAzimuth: adjustedAzimuth.toFixed(3)
+    });
+    
+    azimuthLine.geometry.setFromPoints(azimuthLinePoints);
+    azimuthLine.geometry.attributes.position.needsUpdate = true;
 }
 
 export function drawSunPath() {

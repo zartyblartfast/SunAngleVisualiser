@@ -43,7 +43,19 @@ function updateAllDiagrams() {
     createSolarAltitudeDiagram(parseFloat(document.getElementById('location-latitude-input').value));
     createSphericalEarthDiagram();
     createAngleTestDiagram();
-    updateSunPosition(solarAzimuth, 90 - solarZenith);
+    
+    // Use the displayed azimuth value and calculate altitude from zenith
+    const displayedAzimuth = parseFloat(document.getElementById('solar-azimuth-output').value);
+    const altitude = 90 - solarZenith;
+    
+    console.log('Azimuth values:', {
+        calculatedAzimuth: solarAzimuth,
+        displayedAzimuth: displayedAzimuth,
+        altitude: altitude
+    });
+    
+    // Pass the azimuth directly - we'll handle the transformation in sun_path.js
+    updateSunPosition(altitude, displayedAzimuth);
     drawSunPath();
     
     // Update constraints
@@ -53,6 +65,9 @@ function updateAllDiagrams() {
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the sun path diagram
     initSunPathDiagram('sun-path-container');
+    
+    // Set initial values and update diagrams
+    updateAllDiagrams();
     
     const latitudeOverheadInput = document.getElementById('latitude-overhead-input');
     const locationLatitudeInput = document.getElementById('location-latitude-input');
