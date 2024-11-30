@@ -23,8 +23,9 @@ export function initSunPathDiagram(containerId) {
     // Add orbit controls
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.minPolarAngle = 0; // Don't allow camera to go above the zenith
+    controls.dampingFactor = 0.1;  // Increased damping for smoother movement
+    controls.zoomSpeed = 0.5;      // Reduced zoom speed (default is 1.0)
+    controls.minPolarAngle = 0;    // Don't allow camera to go above the zenith
     controls.maxPolarAngle = Math.PI / 2; // Don't allow camera to go below horizon
 
     // Create celestial dome lines
@@ -173,8 +174,62 @@ export function initSunPathDiagram(containerId) {
     groundPlane.rotation.x = -Math.PI / 2;
     scene.add(groundPlane);
 
-    // Add cardinal directions
-    addCardinalMarkers();
+    // Add cardinal direction labels using sprites
+    function createTextSprite(text) {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 64;
+        canvas.height = 64;
+
+        // Draw dark grey background circle
+        context.beginPath();
+        context.arc(32, 32, 28, 0, 2 * Math.PI);
+        context.fillStyle = '#404040';  // Dark grey
+        context.fill();
+
+        // Draw white text
+        context.font = 'Bold 48px Arial';
+        context.fillStyle = 'white';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(text, 32, 32);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMaterial = new THREE.SpriteMaterial({ 
+            map: texture,
+            transparent: true,
+            depthWrite: false,
+            depthTest: false
+        });
+        return new THREE.Sprite(spriteMaterial);
+    }
+
+    // Create and position cardinal direction labels
+    const labelOffset = lineLength/2 + 0.3; // Slightly beyond line ends
+    
+    // North label
+    const northLabel = createTextSprite('N');
+    northLabel.position.set(0, 0, -labelOffset);
+    northLabel.scale.set(0.5, 0.5, 1);
+    scene.add(northLabel);
+
+    // South label
+    const southLabel = createTextSprite('S');
+    southLabel.position.set(0, 0, labelOffset);
+    southLabel.scale.set(0.5, 0.5, 1);
+    scene.add(southLabel);
+
+    // East label
+    const eastLabel = createTextSprite('E');
+    eastLabel.position.set(labelOffset, 0, 0);
+    eastLabel.scale.set(0.5, 0.5, 1);
+    scene.add(eastLabel);
+
+    // West label
+    const westLabel = createTextSprite('W');
+    westLabel.position.set(-labelOffset, 0, 0);
+    westLabel.scale.set(0.5, 0.5, 1);
+    scene.add(westLabel);
 
     // Create sun point
     const sunGeometry = new THREE.SphereGeometry(0.1, 16, 16);
@@ -195,31 +250,7 @@ export function initSunPathDiagram(containerId) {
 }
 
 function addCardinalMarkers() {
-    const radius = 3.2;
-    const directions = [
-        { label: 'N', angle: 0 },
-        { label: 'E', angle: Math.PI / 2 },
-        { label: 'S', angle: Math.PI },
-        { label: 'W', angle: -Math.PI / 2 }
-    ];
-
-    directions.forEach(dir => {
-        const x = radius * Math.sin(dir.angle);
-        const z = radius * Math.cos(dir.angle);
-        
-        const div = document.createElement('div');
-        div.className = 'cardinal-marker';
-        div.textContent = dir.label;
-        div.style.position = 'absolute';
-        
-        const vector = new THREE.Vector3(x, 0, z);
-        vector.project(camera);
-        
-        div.style.left = (vector.x * 0.5 + 0.5) * window.innerWidth + 'px';
-        div.style.top = (-vector.y * 0.5 + 0.5) * window.innerHeight + 'px';
-        
-        document.body.appendChild(div);
-    });
+    // Remove old HTML-based markers as we're now using sprites
 }
 
 function onWindowResize() {
