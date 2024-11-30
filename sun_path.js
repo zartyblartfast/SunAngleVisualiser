@@ -103,6 +103,64 @@ export function initSunPathDiagram(containerId) {
     celestialDome = createDomeLines();
     scene.add(celestialDome);
 
+    // Create straight N-S and E-W axis lines
+    const lineLength = 7.0;  // Total length of each line (extending beyond circle)
+    
+    // Create completely separate materials for each line
+    const ewLineMaterial = new THREE.LineBasicMaterial({
+        color: 0xFF0000,  // Red for East-West
+        linewidth: 1,
+        transparent: false,
+        depthWrite: false,
+        depthTest: false
+    });
+
+    const nsLineMaterial = new THREE.LineBasicMaterial({
+        color: 0x0000FF,  // Blue for North-South
+        linewidth: 1,
+        transparent: false,
+        depthWrite: false,
+        depthTest: false
+    });
+
+    // East-West line (red)
+    const ewPoints = [
+        new THREE.Vector3(-lineLength/2, 0, 0),
+        new THREE.Vector3(lineLength/2, 0, 0)
+    ];
+    const ewGeometry = new THREE.BufferGeometry().setFromPoints(ewPoints);
+    const ewLine = new THREE.Line(ewGeometry, ewLineMaterial);
+    ewLine.renderOrder = 2;
+    scene.add(ewLine);
+
+    // North-South line (blue)
+    const nsPoints = [
+        new THREE.Vector3(0, 0, -lineLength/2),
+        new THREE.Vector3(0, 0, lineLength/2)
+    ];
+    const nsGeometry = new THREE.BufferGeometry().setFromPoints(nsPoints);
+    const nsLine = new THREE.Line(nsGeometry, nsLineMaterial);
+    nsLine.renderOrder = 2;
+    scene.add(nsLine);
+
+    // Vertical line (zenith line)
+    const zenithLineMaterial = new THREE.LineBasicMaterial({
+        color: 0x808080,  // Grey color
+        linewidth: 1,
+        transparent: false,
+        depthWrite: false,
+        depthTest: false
+    });
+
+    const zenithPoints = [
+        new THREE.Vector3(0, 0, 0),        // Base center
+        new THREE.Vector3(0, 3, 0)     // Zenith point
+    ];
+    const zenithGeometry = new THREE.BufferGeometry().setFromPoints(zenithPoints);
+    const zenithLine = new THREE.Line(zenithGeometry, zenithLineMaterial);
+    zenithLine.renderOrder = 2;
+    scene.add(zenithLine);
+
     // Create ground plane
     const planeGeometry = new THREE.CircleGeometry(3, 32);
     const planeMaterial = new THREE.MeshBasicMaterial({
@@ -123,10 +181,6 @@ export function initSunPathDiagram(containerId) {
     const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
     sunPoint = new THREE.Mesh(sunGeometry, sunMaterial);
     scene.add(sunPoint);
-
-    // Add axes helper
-    const axesHelper = new THREE.AxesHelper(4);
-    scene.add(axesHelper);
 
     // Animation loop
     function animate() {
