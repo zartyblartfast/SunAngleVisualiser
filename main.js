@@ -3,6 +3,7 @@ import { createSphericalEarthDiagram } from './spherical_Earth_diagram.js';
 import { createAngleTestDiagram } from './angle_test_diagram.js';
 import { updateLatitudeConstraints } from './latitude_constraint.js';
 import { calculateSolarDeclination, calculateSolarElevation, calculateSolarAzimuth } from './solar_calculations.js';
+import { initSunPathDiagram, updateSunPosition, drawSunPath } from './sun_path.js';
 
 const SCALE_FACTOR = 1.5;  // Global scaling constant for both diagrams
 
@@ -17,7 +18,7 @@ function updateSolarCalculations() {
     const solarElevation = calculateSolarElevation(latitude, solarDeclination);
 
     // Calculate solar azimuth
-    const { solarAzimuth } = calculateSolarAzimuth(date, latitude, longitude, timeZone);
+    const { solarAzimuth, solarZenith } = calculateSolarAzimuth(date, latitude, longitude, timeZone);
     
     // Update azimuth display
     const azimuthOutput = document.getElementById('solar-azimuth-output');
@@ -25,7 +26,13 @@ function updateSolarCalculations() {
         azimuthOutput.value = solarAzimuth.toFixed(1);
     }
 
-    return { solarDeclination, solarElevation, solarAzimuth };
+    // Update zenith display
+    const zenithOutput = document.getElementById('solar-zenith-output');
+    if (zenithOutput) {
+        zenithOutput.value = solarZenith.toFixed(1);
+    }
+
+    return { solarDeclination, solarElevation, solarAzimuth, solarZenith };
 }
 
 // Update the existing update function to use the new calculations
@@ -42,6 +49,9 @@ function updateAllDiagrams() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the sun path diagram
+    initSunPathDiagram('sun-path-container');
+    
     const latitudeOverheadInput = document.getElementById('latitude-overhead-input');
     const locationLatitudeInput = document.getElementById('location-latitude-input');
     const locationLongitudeInput = document.getElementById('location-longitude-input');
@@ -458,3 +468,14 @@ document.addEventListener('DOMContentLoaded', function() {
         createSolarAltitudeDiagram(latitude);
     });
 });
+
+function updateCalculations() {
+    // Your existing calculation code...
+    
+    // Update the sun position in the 3D diagram
+    const altitude = 90 - solarZenith; // Convert zenith to altitude
+    updateSunPosition(altitude, solarAzimuth);
+    
+    // Draw the full day sun path
+    drawSunPath(latitude, date);
+}

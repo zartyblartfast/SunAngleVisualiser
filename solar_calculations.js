@@ -33,6 +33,15 @@ function calculateSolarPosition(julianCentury) {
     // Sun True Longitude (deg)
     const sunTrueLong = geomMeanLongSun + sunEqOfCtr;
 
+    // Sun True Anomaly (deg)
+    const sunTrueAnom = geomMeanAnomSun + sunEqOfCtr;
+
+    // Sun Rad Vector (AUs)
+    const sunRadVector = (1.000001018 * (1 - Math.pow(0.016708634 - julianCentury * 
+        (0.000042037 + 0.0000001267 * julianCentury), 2))) / 
+        (1 + (0.016708634 - julianCentury * (0.000042037 + 
+        0.0000001267 * julianCentury)) * Math.cos(toRadians(sunTrueAnom)));
+
     // Eccentricity of Earth Orbit
     const eccentEarthOrbit = 0.016708634 - julianCentury * 
         (0.000042037 + 0.0000001267 * julianCentury);
@@ -42,6 +51,8 @@ function calculateSolarPosition(julianCentury) {
         geomMeanAnomSun,
         sunEqOfCtr,
         sunTrueLong,
+        sunTrueAnom,
+        sunRadVector,
         eccentEarthOrbit
     };
 }
@@ -101,8 +112,8 @@ export function calculateSolarDeclination(date) {
 }
 
 export function calculateSolarElevation(latitude, solarDeclination) {
-    // Calculate solar elevation at solar noon
-    const solarElevation = 90 - Math.abs(latitude - solarDeclination);
+    // Solar elevation is 90° - zenith angle
+    const solarElevation = 90 - calculateSolarAzimuth(new Date(), latitude, 0, 0).solarZenith;
     
     // Update the display if element exists
     const outputElement = document.getElementById('solar-elevation-output');
@@ -116,20 +127,58 @@ export function calculateSolarElevation(latitude, solarDeclination) {
 }
 
 export function calculateSolarAzimuth(date, latitude, longitude, timeZone) {
-    // Get the current time in hours past local midnight
-    const timePastMidnight = date.getHours() + date.getMinutes()/60 + date.getSeconds()/3600;
+    // Ensure we're using the correct time (12:00 if time is not set)
+    if (date.getHours() === 0 && date.getMinutes() === 0) {
+        date.setHours(12);
+    }
     
+    // Get the current time in days past local midnight (convert from hours to days)
+    const timePastMidnight = (date.getHours() + date.getMinutes()/60 + date.getSeconds()/3600) / 24;
+    
+    // Ensure timeZone is properly handled (convert -0 to 0)
+    timeZone = timeZone === -0 ? 0 : timeZone;
+    
+    console.log('Input values:');
+    console.log('Date:', date);
+    console.log('Latitude:', latitude);
+    console.log('Longitude:', longitude);
+    console.log('Time Zone:', timeZone);
+    console.log('Time past midnight (days):', timePastMidnight);
+
     // Get common calculations
-    const { julianCentury } = calculateJulianValues(date, timeZone);
+    const { julianDay, julianCentury } = calculateJulianValues(date, timeZone);
+    console.log('Julian Day (F2):', julianDay);
+    console.log('Julian Century (G2):', julianCentury);
+
     const { 
         geomMeanLongSun, 
         geomMeanAnomSun, 
+        sunEqOfCtr,
+        sunTrueLong,
+        sunTrueAnom,
+        sunRadVector,
         eccentEarthOrbit 
     } = calculateSolarPosition(julianCentury);
+
+    console.log('Geom Mean Long Sun (I2):', geomMeanLongSun);
+    console.log('Geom Mean Anom Sun (J2):', geomMeanAnomSun);
+    console.log('Sun Eq of Ctr (L2):', sunEqOfCtr);
+    console.log('Sun True Long (M2):', sunTrueLong);
+    console.log('Sun True Anom:', sunTrueAnom);
+    console.log('Sun Rad Vector (R):', sunRadVector);
+    console.log('Eccent Earth Orbit (K2):', eccentEarthOrbit);
+
     const { 
+        meanObliqEcliptic,
         obliqCorr,
+        sunAppLong,
         solarDeclination 
-    } = calculateObliquityAndDeclination(julianCentury, geomMeanLongSun);
+    } = calculateObliquityAndDeclination(julianCentury, sunTrueLong);
+
+    console.log('Mean Obliq Ecliptic (Q2):', meanObliqEcliptic);
+    console.log('Obliq Corr (R2):', obliqCorr);
+    console.log('Sun App Long (P2):', sunAppLong);
+    console.log('Solar Declination (T2):', solarDeclination);
     
     // Calculate equation of time
     const eqOfTime = calculateEquationOfTime(
@@ -139,12 +188,23 @@ export function calculateSolarAzimuth(date, latitude, longitude, timeZone) {
         eccentEarthOrbit, 
         obliqCorr
     );
+    console.log('Equation of Time (V2):', eqOfTime);
 
-    // Calculate AB2 (Time past local midnight adjusted)
-    const timeAdjusted = mod(timePastMidnight * 60 + eqOfTime + 4 * longitude - 60 * timeZone, 1440);
-
-    // Calculate AC2 (Hour angle)
-    const hourAngle = timeAdjusted/4 < 0 ? timeAdjusted/4 + 180 : timeAdjusted/4 - 180;
+    // Calculate time adjusted (HA Sunrise/Sunset)
+    const haSunrise = Math.acos(Math.cos(toRadians(90.833)) / 
+        (Math.cos(toRadians(latitude)) * Math.cos(toRadians(solarDeclination))) - 
+        Math.tan(toRadians(latitude)) * Math.tan(toRadians(solarDeclination)));
+    const haDeg = toDegrees(haSunrise);
+    
+    // Calculate solar noon
+    const solarNoon = (720 - 4 * longitude - eqOfTime + timeZone * 60) / 1440;
+    
+    // Calculate true solar time (convert timePastMidnight from days to minutes)
+    const trueSolarTime = mod(timePastMidnight * 24 * 60 + eqOfTime + 4 * longitude - 60 * timeZone, 1440);
+    
+    // Calculate hour angle
+    const hourAngle = trueSolarTime / 4 < 0 ? trueSolarTime / 4 + 180 : trueSolarTime / 4 - 180;
+    console.log('Hour Angle (AC2):', hourAngle);
 
     // Calculate Solar Zenith Angle (deg)
     const solarZenith = toDegrees(Math.acos(
@@ -152,19 +212,25 @@ export function calculateSolarAzimuth(date, latitude, longitude, timeZone) {
         Math.cos(toRadians(latitude)) * Math.cos(toRadians(solarDeclination)) * 
             Math.cos(toRadians(hourAngle))
     ));
+    console.log('Solar Zenith Angle (AD2):', solarZenith);
 
     // Calculate Solar Azimuth
     const acosTerm = (
         (Math.sin(toRadians(latitude)) * Math.cos(toRadians(solarZenith))) -
         Math.sin(toRadians(solarDeclination))
     ) / (Math.cos(toRadians(latitude)) * Math.sin(toRadians(solarZenith)));
-
+    
+    const acosValue = toDegrees(Math.acos(acosTerm));
+    console.log('ACOS value:', acosValue);
+    
     let solarAzimuth;
     if (hourAngle > 0) {
-        solarAzimuth = mod(toDegrees(Math.acos(acosTerm)) + 180, 360);
+        solarAzimuth = mod(acosValue + 180, 360);
     } else {
-        solarAzimuth = mod(540 - toDegrees(Math.acos(acosTerm)), 360);
+        solarAzimuth = mod(180 - acosValue + 360, 360);
     }
+    
+    console.log('Final Solar Azimuth:', solarAzimuth);
 
     return {
         solarAzimuth,
