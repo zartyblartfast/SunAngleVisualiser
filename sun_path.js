@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.136.0';
 import { OrbitControls } from 'https://cdn.skypack.dev/three@0.136.0/examples/jsm/controls/OrbitControls.js';
+import { calculateSolarElevation, calculateSolarAzimuth, calculateSolarDeclination } from './solar_calculations.js';
 
 let scene, camera, renderer, controls;
 let celestialDome, groundPlane, sunPath, sunPoint;
@@ -23,22 +24,89 @@ export function initSunPathDiagram(containerId) {
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
+    controls.minPolarAngle = 0; // Don't allow camera to go above the zenith
+    controls.maxPolarAngle = Math.PI / 2; // Don't allow camera to go below horizon
+
+    // Create celestial dome lines
+    function createDomeLines() {
+        const radius = 3;
+        const group = new THREE.Group();
+
+        // Create horizon circle
+        const thinLineMaterial = new THREE.LineBasicMaterial({ 
+            color: 0x4682B4,
+            linewidth: 0.1,
+            transparent: true,
+            opacity: 0.4
+        });
+
+        const horizonGeometry = new THREE.CircleGeometry(radius, 64);
+        horizonGeometry.rotateX(-Math.PI / 2);
+        const horizonLine = new THREE.LineLoop(
+            new THREE.BufferGeometry().setFromPoints(horizonGeometry.vertices || 
+                Array.from(horizonGeometry.attributes.position.array).reduce((acc, val, i) => {
+                    if (i % 3 === 0) acc.push(new THREE.Vector3(val, horizonGeometry.attributes.position.array[i + 1], horizonGeometry.attributes.position.array[i + 2]));
+                    return acc;
+                }, [])),
+            thinLineMaterial
+        );
+        group.add(horizonLine);
+
+        // Create meridian lines (vertical circles at 15-degree intervals)
+        const meridianAngles = [];
+        for (let angle = 0; angle <= Math.PI * 2; angle += Math.PI/12) { // PI/12 = 15 degrees
+            meridianAngles.push(angle);
+        }
+
+        meridianAngles.forEach(azimuth => {
+            const points = [];
+            // Start from horizon (alt=0) to zenith (alt=PI/2)
+            // Use smaller steps for smoother curves
+            for (let alt = 0; alt <= Math.PI/2; alt += Math.PI/64) {
+                const x = radius * Math.cos(alt) * Math.sin(azimuth);
+                const y = radius * Math.sin(alt);
+                const z = radius * Math.cos(alt) * Math.cos(azimuth);
+                points.push(new THREE.Vector3(x, y, z));
+            }
+            // Add the exact zenith point to ensure all lines meet there
+            points.push(new THREE.Vector3(0, radius, 0));
+            
+            const meridianGeometry = new THREE.BufferGeometry().setFromPoints(points);
+            const meridianLine = new THREE.Line(meridianGeometry, thinLineMaterial);
+            group.add(meridianLine);
+        });
+
+        // Create parallel lines (altitude circles)
+        const altitudes = [15, 30, 45, 60, 75]; // degrees
+        altitudes.forEach(altDeg => {
+            const alt = altDeg * Math.PI / 180;
+            const points = [];
+            for (let azimuth = 0; azimuth <= Math.PI * 2; azimuth += Math.PI/32) {
+                const x = radius * Math.cos(alt) * Math.sin(azimuth);
+                const y = radius * Math.sin(alt);
+                const z = radius * Math.cos(alt) * Math.cos(azimuth);
+                points.push(new THREE.Vector3(x, y, z));
+            }
+            // Close the circle by connecting back to the start
+            const firstPoint = points[0];
+            points.push(firstPoint);
+            
+            const parallelGeometry = new THREE.BufferGeometry().setFromPoints(points);
+            const parallelLine = new THREE.Line(parallelGeometry, thinLineMaterial);
+            group.add(parallelLine);
+        });
+
+        return group;
+    }
 
     // Create celestial dome
-    const domeGeometry = new THREE.SphereGeometry(3, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
-    const domeMaterial = new THREE.MeshBasicMaterial({
-        color: 0x87CEEB,
-        transparent: true,
-        opacity: 0.3,
-        wireframe: true
-    });
-    celestialDome = new THREE.Mesh(domeGeometry, domeMaterial);
+    celestialDome = createDomeLines();
     scene.add(celestialDome);
 
     // Create ground plane
     const planeGeometry = new THREE.CircleGeometry(3, 32);
     const planeMaterial = new THREE.MeshBasicMaterial({
-        color: 0x90EE90,
+        color: 0xA9A9A9,  // Darker grey (DarkGray)
         transparent: true,
         opacity: 0.3,
         side: THREE.DoubleSide
@@ -123,36 +191,7 @@ export function updateSunPosition(altitude, azimuth) {
     sunPoint.position.set(x, y, z);
 }
 
-export function drawSunPath(latitude, date) {
-    // Remove existing sun path if any
-    if (sunPath) {
-        scene.remove(sunPath);
-    }
-
-    const points = [];
-    for (let hour = 0; hour <= 24; hour += 0.5) {
-        const time = new Date(date);
-        time.setHours(hour);
-        time.setMinutes((hour % 1) * 60);
-        
-        // Calculate sun position for this time
-        const altitude = calculateSolarPosition(latitude, date, hour);
-        const azimuth = calculateAzimuth(latitude, date, hour);
-        
-        // Convert to 3D coordinates
-        const radius = 3;
-        const altRad = altitude * Math.PI / 180;
-        const azRad = azimuth * Math.PI / 180;
-        
-        const x = radius * Math.cos(altRad) * Math.sin(azRad);
-        const y = radius * Math.sin(altRad);
-        const z = radius * Math.cos(altRad) * Math.cos(azRad);
-        
-        points.push(new THREE.Vector3(x, y, z));
-    }
-
-    const pathGeometry = new THREE.BufferGeometry().setFromPoints(points);
-    const pathMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
-    sunPath = new THREE.Line(pathGeometry, pathMaterial);
-    scene.add(sunPath);
+export function drawSunPath() {
+    // Function emptied out to remove sun path visualization
+    // This can be implemented later with different visualization approach
 }
