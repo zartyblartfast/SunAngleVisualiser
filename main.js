@@ -45,20 +45,21 @@ function updateAllDiagrams() {
     createSphericalEarthDiagram();
     createAngleTestDiagram();
     
-    // Wait for the next tick to ensure azimuth output is updated
+    // Wait for the next tick to ensure output values are updated
     setTimeout(() => {
-        // Get the displayed azimuth value after it's been updated
+        // Get the displayed values after they've been updated
         const displayedAzimuth = parseFloat(document.getElementById('solar-azimuth-output').value);
-        const altitude = 90 - solarZenith;
+        const displayedElevation = parseFloat(document.getElementById('solar-elevation-output').value);
         
-        console.log('Azimuth values:', {
+        console.log('Sun position values:', {
             calculatedAzimuth: solarAzimuth,
             displayedAzimuth: displayedAzimuth,
-            altitude: altitude
+            calculatedElevation: 90 - solarZenith,
+            displayedElevation: displayedElevation
         });
         
-        // Now update the sun position with the correct azimuth
-        updateSunPosition(altitude, displayedAzimuth);
+        // Now update the sun position with the correct angles
+        updateSunPosition(displayedElevation, displayedAzimuth);
         drawSunPath();
     }, 0);
     
@@ -70,9 +71,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize the sun path diagram
     initSunPathDiagram('sun-path-container');
     
-    // Set initial values and update diagrams
-    updateAllDiagrams();
-    
     const latitudeOverheadInput = document.getElementById('latitude-overhead-input');
     const locationLatitudeInput = document.getElementById('location-latitude-input');
     const locationLongitudeInput = document.getElementById('location-longitude-input');
@@ -83,11 +81,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const locationLatitudeSlider = document.getElementById('location-latitude-slider');
     const locationLongitudeSlider = document.getElementById('location-longitude-slider');
 
-    // Set initial date/time values
-    const today = new Date();
-    selectedDate.value = today.toISOString().split('T')[0];
-    solarTime.value = '12:00';  // Start with solar noon
+    // Set initial date to today
+    selectedDate.valueAsDate = new Date();
+    selectedDate.disabled = false;
+    
+    // Set initial solar time to 12:00 (noon)
+    solarTime.value = '12:00';
+    solarTime.disabled = false;
+    
+    // Wait for the next tick to ensure all values are set
+    setTimeout(() => {
+        // Now that we have initial values, update the diagrams
+        if (locationLatitudeInput.value && locationLongitudeInput.value && 
+            selectedDate.value && solarTime.value) {
+            updateAllDiagrams();
+        }
+    }, 0);
 
+    // Set initial values and update diagrams
+    updateAllDiagrams();
+    
     // Set initial solar declination and elevation
     const initialDate = new Date(selectedDate.value);
     const initialDeclination = calculateSolarDeclination(initialDate);
