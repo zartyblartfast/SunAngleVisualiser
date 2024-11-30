@@ -37,26 +37,30 @@ function updateSolarCalculations() {
 
 // Update the existing update function to use the new calculations
 function updateAllDiagrams() {
+    // First calculate all solar values
     const { solarDeclination, solarAzimuth, solarZenith } = updateSolarCalculations();
     
-    // Update diagrams
+    // Update diagrams that don't depend on azimuth
     createSolarAltitudeDiagram(parseFloat(document.getElementById('location-latitude-input').value));
     createSphericalEarthDiagram();
     createAngleTestDiagram();
     
-    // Use the displayed azimuth value and calculate altitude from zenith
-    const displayedAzimuth = parseFloat(document.getElementById('solar-azimuth-output').value);
-    const altitude = 90 - solarZenith;
-    
-    console.log('Azimuth values:', {
-        calculatedAzimuth: solarAzimuth,
-        displayedAzimuth: displayedAzimuth,
-        altitude: altitude
-    });
-    
-    // Pass the azimuth directly - we'll handle the transformation in sun_path.js
-    updateSunPosition(altitude, displayedAzimuth);
-    drawSunPath();
+    // Wait for the next tick to ensure azimuth output is updated
+    setTimeout(() => {
+        // Get the displayed azimuth value after it's been updated
+        const displayedAzimuth = parseFloat(document.getElementById('solar-azimuth-output').value);
+        const altitude = 90 - solarZenith;
+        
+        console.log('Azimuth values:', {
+            calculatedAzimuth: solarAzimuth,
+            displayedAzimuth: displayedAzimuth,
+            altitude: altitude
+        });
+        
+        // Now update the sun position with the correct azimuth
+        updateSunPosition(altitude, displayedAzimuth);
+        drawSunPath();
+    }, 0);
     
     // Update constraints
     updateLatitudeConstraints(solarDeclination);
