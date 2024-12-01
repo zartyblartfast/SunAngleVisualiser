@@ -4,8 +4,7 @@ import { createAngleTestDiagram } from './angle_test_diagram.js';
 import { updateLatitudeConstraints } from './latitude_constraint.js';
 import { calculateSolarDeclination, calculateSolarElevation, calculateSolarAzimuth, calculateDateFromDeclination } from './solar_calculations.js';
 import { initSunPathDiagram, updateSunPosition, drawSunPath } from './sun_path.js';
-
-const SCALE_FACTOR = 1.5;  // Global scaling constant for both diagrams
+import { SCALE_FACTOR } from './utilities.js';
 
 function updateSolarCalculations() {
     const date = new Date(document.getElementById('selected-date').value);

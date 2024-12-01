@@ -149,4 +149,4 @@ export function drawArcAngle(params) {
 }
 
 // Define global scale factor for SVG diagrams
-export const SCALE_FACTOR = 1;
+export const SCALE_FACTOR = 1.5;
