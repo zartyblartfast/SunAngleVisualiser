@@ -242,3 +242,28 @@ export function calculateSolarAzimuth(date, latitude, longitude, timeZone) {
         eqOfTime
     };
 }
+
+export function calculateDateFromDeclination(targetDeclination, year) {
+    // Create a date object for the start of the year
+    const startDate = new Date(year, 0, 1);
+    
+    // Function to get absolute difference between two numbers
+    const diff = (a, b) => Math.abs(a - b);
+    
+    let closestDate = startDate;
+    let smallestDiff = Number.MAX_VALUE;
+    
+    // Check each day of the year
+    for (let day = 0; day < 365; day++) {
+        const currentDate = new Date(year, 0, day);
+        const currentDeclination = calculateSolarDeclination(currentDate);
+        
+        const currentDiff = diff(currentDeclination, targetDeclination);
+        if (currentDiff < smallestDiff) {
+            smallestDiff = currentDiff;
+            closestDate = currentDate;
+        }
+    }
+    
+    return closestDate;
+}

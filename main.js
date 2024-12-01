@@ -2,7 +2,7 @@ import { createSolarAltitudeDiagram } from './solar_altitude_diagram.js';
 import { createSphericalEarthDiagram } from './spherical_Earth_diagram.js';
 import { createAngleTestDiagram } from './angle_test_diagram.js';
 import { updateLatitudeConstraints } from './latitude_constraint.js';
-import { calculateSolarDeclination, calculateSolarElevation, calculateSolarAzimuth } from './solar_calculations.js';
+import { calculateSolarDeclination, calculateSolarElevation, calculateSolarAzimuth, calculateDateFromDeclination } from './solar_calculations.js';
 import { initSunPathDiagram, updateSunPosition, drawSunPath } from './sun_path.js';
 
 const SCALE_FACTOR = 1.5;  // Global scaling constant for both diagrams
@@ -13,8 +13,11 @@ function updateSolarCalculations() {
     const longitude = parseFloat(document.getElementById('location-longitude-input').value);
     const timeZone = -(new Date().getTimezoneOffset() / 60);
 
-    // Calculate solar declination and elevation
-    const solarDeclination = calculateSolarDeclination(date);
+    // Check if we're in manual declination mode
+    const latitudeOverheadInput = document.getElementById('latitude-overhead-input');
+    const solarDeclination = latitudeOverheadInput.hasAttribute('data-manual') 
+        ? parseFloat(latitudeOverheadInput.value)
+        : calculateSolarDeclination(date);
     const solarElevation = calculateSolarElevation(latitude, solarDeclination);
 
     // Calculate solar azimuth
@@ -30,6 +33,12 @@ function updateSolarCalculations() {
     const zenithOutput = document.getElementById('solar-zenith-output');
     if (zenithOutput) {
         zenithOutput.value = solarZenith.toFixed(1);
+    }
+
+    // Update elevation display
+    const elevationOutput = document.getElementById('solar-elevation-output');
+    if (elevationOutput) {
+        elevationOutput.value = solarElevation.toFixed(1);
     }
 
     return { solarDeclination, solarElevation, solarAzimuth, solarZenith };
