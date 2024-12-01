@@ -94,6 +94,24 @@ document.addEventListener('DOMContentLoaded', function() {
     selectedDate.valueAsDate = new Date();
     selectedDate.disabled = false;
     
+    // Add date change handler
+    selectedDate.addEventListener('input', function() {
+        const date = new Date(this.value);
+        const latitude = parseFloat(locationLatitudeInput.value);
+        const solarDeclination = calculateSolarDeclination(date);
+        
+        // Update solar elevation
+        const solarElevation = calculateSolarElevation(latitude, solarDeclination);
+        document.getElementById('solar-elevation-output').value = solarElevation.toFixed(1);
+        
+        // Update overhead latitude to match new declination
+        latitudeOverheadInput.value = solarDeclination.toFixed(1);
+        latitudeOverheadSlider.value = solarDeclination.toFixed(1);
+        
+        // Update diagrams
+        updateAllDiagrams();
+    });
+    
     // Set initial solar time to 12:00 (noon)
     solarTime.value = '12:00';
     solarTime.disabled = false;
@@ -195,26 +213,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add constraint update to solar declination changes
     latitudeOverheadInput.addEventListener('input', function() {
+        console.log('******* Manual change to latitude-overhead-input:', this.value);
+        this.setAttribute('data-manual', 'true');
+        latitudeOverheadSlider.value = this.value;
+        
         const solarDeclination = parseFloat(this.value);
-        const min = solarDeclination - 90;
-        const max = solarDeclination + 90;
+        const latitude = parseFloat(locationLatitudeInput.value);
         
-        locationLatitudeInput.min = min;
-        locationLatitudeInput.max = max;
-        locationLatitudeSlider.min = min;
-        locationLatitudeSlider.max = max;
+        // Calculate and update solar elevation directly
+        const solarElevation = calculateSolarElevation(latitude, solarDeclination);
+        document.getElementById('solar-elevation-output').value = solarElevation.toFixed(1);
         
-        const currentLatitude = parseFloat(locationLatitudeInput.value);
-        if (currentLatitude > max) {
-            locationLatitudeInput.value = max;
-            locationLatitudeSlider.value = max;
-        } else if (currentLatitude < min) {
-            locationLatitudeInput.value = min;
-            locationLatitudeSlider.value = min;
-        }
+        // Update diagrams and constraints
+        updateAllDiagrams();
+        updateLatitudeConstraints(solarDeclination);
     });
-
-    // Sync sliders with input fields
     latitudeOverheadSlider.addEventListener('input', function() {
         latitudeOverheadInput.value = this.value;
         const latitude = parseFloat(locationLatitudeInput.value);

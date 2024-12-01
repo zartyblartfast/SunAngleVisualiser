@@ -112,16 +112,13 @@ export function calculateSolarDeclination(date) {
 }
 
 export function calculateSolarElevation(latitude, solarDeclination) {
-    // Solar elevation is 90° - zenith angle
-    const solarElevation = 90 - calculateSolarAzimuth(new Date(), latitude, 0, 0).solarZenith;
+    // Convert inputs to radians
+    const latRad = toRadians(latitude);
+    const declRad = toRadians(solarDeclination);
     
-    // Update the display if element exists
-    const outputElement = document.getElementById('solar-elevation-output');
-    if (outputElement) {
-        outputElement.value = solarElevation.toFixed(1);
-    } else {
-        console.log('Solar elevation output element not found');
-    }
+    // Calculate solar elevation at solar noon (when sun is highest)
+    // Formula: elevation = 90° - (latitude - declination)
+    const solarElevation = 90 - Math.abs(latitude - solarDeclination);
     
     return solarElevation;
 }
