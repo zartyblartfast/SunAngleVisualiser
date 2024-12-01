@@ -8,23 +8,11 @@ export function updateLatitudeConstraints(solarDeclination) {
     const negativeLimit = solarDeclination - 90;  // 90° south of the declination
     const positiveLimit = solarDeclination + 90;  // 90° north of the declination
     
-    // Update input limits
+    // Only update the min/max attributes
     latitudeInput.setAttribute('min', negativeLimit);
     latitudeInput.setAttribute('max', positiveLimit);
     latitudeSlider.setAttribute('min', negativeLimit);
     latitudeSlider.setAttribute('max', positiveLimit);
-    
-    // Ensure current value is within new limits
-    let currentLatitude = parseFloat(latitudeInput.value);
-    if (currentLatitude > positiveLimit) {
-        currentLatitude = positiveLimit;
-        latitudeInput.value = positiveLimit;
-        latitudeSlider.value = positiveLimit;
-    } else if (currentLatitude < negativeLimit) {
-        currentLatitude = negativeLimit;
-        latitudeInput.value = negativeLimit;
-        latitudeSlider.value = negativeLimit;
-    }
 }
 
 // Add event listener for solar declination changes
