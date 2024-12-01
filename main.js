@@ -72,8 +72,6 @@ function updateAllDiagrams() {
         drawSunPath();
     }, 0);
     
-    // Update constraints
-    updateLatitudeConstraints(solarDeclination);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -96,20 +94,34 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add date change handler
     selectedDate.addEventListener('input', function() {
+        console.log('******* Date changed');
         const date = new Date(this.value);
-        const latitude = parseFloat(locationLatitudeInput.value);
-        const solarDeclination = calculateSolarDeclination(date);
+        const declination = calculateSolarDeclination(date);
+        console.log('******* Calculated declination:', declination);
         
-        // Update solar elevation
+        // Update latitude overhead input
+        const latitudeOverheadInput = document.getElementById('latitude-overhead-input');
+        const manualValue = latitudeOverheadInput.getAttribute('data-manual');
+        console.log('******* Manual value:', manualValue);
+        
+        // Only update if not manually set
+        if (!manualValue) {
+            latitudeOverheadInput.value = declination.toFixed(1);
+            console.log('******* Updated to calculated value:', latitudeOverheadInput.value);
+        } else {
+            console.log('******* Keeping manual value:', latitudeOverheadInput.value);
+        }
+        
+        // Calculate and update solar elevation
+        const latitude = parseFloat(document.getElementById('location-latitude-input').value);
+        const solarDeclination = parseFloat(latitudeOverheadInput.value);
         const solarElevation = calculateSolarElevation(latitude, solarDeclination);
         document.getElementById('solar-elevation-output').value = solarElevation.toFixed(1);
         
-        // Update overhead latitude to match new declination
-        latitudeOverheadInput.value = solarDeclination.toFixed(1);
-        latitudeOverheadSlider.value = solarDeclination.toFixed(1);
-        
-        // Update diagrams
-        updateAllDiagrams();
+        // Update only diagrams, skip constraint updates
+        createSolarAltitudeDiagram(latitude);
+        createSphericalEarthDiagram();
+        createAngleTestDiagram();
     });
     
     // Set initial solar time to 12:00 (noon)
@@ -258,10 +270,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Calculate new solar elevation
         const solarElevation = calculateSolarElevation(latitude, solarDeclination);
+        document.getElementById('solar-elevation-output').value = solarElevation.toFixed(1);
         
-        // Update diagrams and constraints
+        // Update diagrams only
         updateAllDiagrams();
-        updateLatitudeConstraints(solarDeclination);
     });
 
     // Initial sync of sliders with input values
