@@ -250,7 +250,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const solarElevation = calculateSolarElevation(latitude, solarDeclination);
         document.getElementById('solar-elevation-output').value = solarElevation.toFixed(1);
         
-        // Update only the diagrams, skip constraint updates
+        // Update the latitude constraints based on the new solar declination
+        updateLatitudeConstraints(solarDeclination);
+        
+        // Update diagrams
         createSolarAltitudeDiagram(parseFloat(document.getElementById('location-latitude-input').value));
         createSphericalEarthDiagram();
         createAngleTestDiagram();
