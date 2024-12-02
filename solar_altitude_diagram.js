@@ -146,6 +146,42 @@ export function createSolarAltitudeDiagram(latitude) {
     radiusLine.setAttribute("stroke-width", SCALE_FACTOR);
     svg.appendChild(radiusLine);
 
+    // Draw central angle between equator and radius line
+    // For SVG: 0° is at 3 o'clock, angles increase clockwise
+    // For positive latitude: we want to go counterclockwise up from equator
+    // For negative latitude: we want to go clockwise down from equator
+    const svgLatitude = latitude >= 0 ? 
+        latitude % 360 :          // For positive latitude: go up counterclockwise
+        (360 + latitude) % 360;   // For negative latitude: go down clockwise
+    
+    // For negative latitudes, we need to ensure the label stays on the right side
+    // and below the equator
+    const labelOutside = true;
+    const labelOffset = radius * (latitude >= 0 ? 0.25 : -0.25); // Increased offset from 0.15 to 0.25
+    
+    drawArcAngle({
+        x: centerX,
+        y: centerY,
+        line1Angle: 0,  // Equator line is at 0 degrees in SVG system
+        line2Angle: svgLatitude,
+        offset: Math.abs(radius * 0.15),  // Arc size stays the same
+        label: `${Math.abs(latitude).toFixed(1)}°`,
+        labelOutside: labelOutside,
+        labelOffset: labelOffset,  // Pass the increased offset
+        style: {
+            color: 'red',
+            width: 1
+        },
+        labelStyle: {
+            color: 'red',
+            fontSize: 12,
+            bold: false
+        },
+        svg: svg,
+        debug: true,
+        angleType: 'geographic'
+    });
+
     // Calculate points for tangent line
     const tangentLength = radius * 0.5; // Length of tangent line (total length will be 2x this)
     const tangentAngle = latitude * Math.PI / 180; // Changed angle calculation
@@ -250,32 +286,9 @@ export function createSolarAltitudeDiagram(latitude) {
         console.groupEnd();
     }
 
-    // Add latitude angle
     console.group('Latitude Arc');
     
-    drawArcAngle({
-        x: centerX,
-        y: centerY,
-        line1Angle: toSVGAngle(0, 'geographic'),  // Reference from equator
-        line2Angle: toSVGAngle(latitude, 'geographic'),
-        offset: angleRadius,
-        label: `${Math.abs(latitude).toFixed(1)}°`,
-        labelOutside: true,
-        style: {
-            color: 'blue',
-            width: SCALE_FACTOR
-        },
-        labelStyle: {
-            fontSize: 12 * SCALE_FACTOR,
-            color: 'blue',
-            bold: false
-        },
-        svg: svg,
-        debug: true,
-        angleType: 'geographic'
-    });
     console.groupEnd();
-
 }
 
 // Add this update function

@@ -22,6 +22,7 @@ export function normalizeAngle(angle) {
  *   @param {number} params.offset - Distance from intersection point
  *   @param {string} params.label - Text to display as angle label
  *   @param {boolean} [params.labelOutside=true] - Whether to place label outside the arc
+ *   @param {number} [params.labelOffset] - Custom offset for label positioning
  *   @param {Object} params.style - Visual properties
  *     @param {string} params.style.color - Stroke color
  *     @param {number} params.style.width - Line width relative to SCALE_FACTOR
@@ -124,7 +125,10 @@ export function drawArcAngle(params) {
     if (params.label) {
         // Calculate the midpoint angle for label positioning
         const midAngle = ((startRad + endRad) / 2) % (2 * Math.PI);
-        const labelRadius = params.labelOutside ? arcRadius * 1.3 : arcRadius * 0.7;
+        
+        // Use custom labelOffset if provided, otherwise calculate based on labelOutside
+        const labelRadius = params.labelOffset || 
+            (params.labelOutside ? arcRadius * 1.3 : arcRadius * 0.7);
 
         const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
         label.setAttribute("x", params.x + labelRadius * Math.cos(midAngle));

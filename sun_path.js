@@ -285,6 +285,13 @@ function onWindowResize() {
 export function updateSunPosition(altitude, azimuth) {
     console.log('Sun path receiving - altitude:', altitude, 'azimuth:', azimuth);
     
+    // Validate input parameters
+    if (altitude === undefined || azimuth === undefined || 
+        isNaN(altitude) || isNaN(azimuth)) {
+        console.error('Invalid altitude or azimuth:', { altitude, azimuth });
+        return;
+    }
+    
     // Convert angles to radians
     const altitudeRad = altitude * Math.PI / 180;
     
@@ -325,6 +332,13 @@ export function updateSunPosition(altitude, azimuth) {
             )
         ];
 
+        // Validate points before creating geometry
+        if (elevationLinePoints.some(point => 
+            isNaN(point.x) || isNaN(point.y) || isNaN(point.z))) {
+            console.error('Invalid elevation line points:', elevationLinePoints);
+            return;
+        }
+
         // Create arc geometry
         const segments = 20;  // Number of segments in the arc
         const arcPoints = [];
@@ -333,21 +347,35 @@ export function updateSunPosition(altitude, azimuth) {
         // Add points along the ground to the azimuth end
         for (let i = 0; i <= segments; i++) {
             const t = i / segments;
-            arcPoints.push(new THREE.Vector3(
+            const point = new THREE.Vector3(
                 t * azimuthLinePoints[1].x,
                 0,
                 t * azimuthLinePoints[1].z
-            ));
+            );
+            // Validate point before adding
+            if (!isNaN(point.x) && !isNaN(point.y) && !isNaN(point.z)) {
+                arcPoints.push(point);
+            }
         }
         
         // Add points along the dome to the elevation point
         for (let i = segments; i >= 0; i--) {
             const t = i / segments;
-            arcPoints.push(new THREE.Vector3(
+            const point = new THREE.Vector3(
                 elevationLinePoints[1].x * t,
                 elevationLinePoints[1].y * Math.sin(Math.PI * t / 2),
                 elevationLinePoints[1].z * t
-            ));
+            );
+            // Validate point before adding
+            if (!isNaN(point.x) && !isNaN(point.y) && !isNaN(point.z)) {
+                arcPoints.push(point);
+            }
+        }
+        
+        // Only proceed if we have valid points
+        if (arcPoints.length < 3) {
+            console.error('Not enough valid points to create arc geometry');
+            return;
         }
         
         // Create faces for the arc
@@ -358,14 +386,33 @@ export function updateSunPosition(altitude, azimuth) {
         
         // Update the arc geometry
         const arcGeometry = new THREE.BufferGeometry();
-        arcGeometry.setFromPoints(arcPoints);
+        
+        // Convert points to flat array of coordinates
+        const positions = new Float32Array(arcPoints.length * 3);
+        arcPoints.forEach((point, i) => {
+            positions[i * 3] = point.x;
+            positions[i * 3 + 1] = point.y;
+            positions[i * 3 + 2] = point.z;
+        });
+        
+        arcGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         arcGeometry.setIndex(indices);
-        arcGeometry.computeVertexNormals();
-        sunArc.geometry.dispose();
-        sunArc.geometry = arcGeometry;
+        
+        try {
+            arcGeometry.computeVertexNormals();
+            if (sunArc.geometry) {
+                sunArc.geometry.dispose();
+            }
+            sunArc.geometry = arcGeometry;
+        } catch (error) {
+            console.error('Error updating arc geometry:', error);
+            return;
+        }
         
         // Update elevation line
-        elevationLine.geometry.setFromPoints(elevationLinePoints);
+        const elevationGeometry = new THREE.BufferGeometry().setFromPoints(elevationLinePoints);
+        elevationLine.geometry.dispose();
+        elevationLine.geometry = elevationGeometry;
         elevationLine.geometry.attributes.position.needsUpdate = true;
         
         // Make elevation line and sun arc visible
@@ -378,7 +425,9 @@ export function updateSunPosition(altitude, azimuth) {
     }
     
     // Always update azimuth line
-    azimuthLine.geometry.setFromPoints(azimuthLinePoints);
+    const azimuthGeometry = new THREE.BufferGeometry().setFromPoints(azimuthLinePoints);
+    azimuthLine.geometry.dispose();
+    azimuthLine.geometry = azimuthGeometry;
     azimuthLine.geometry.attributes.position.needsUpdate = true;
 }
 
