@@ -171,82 +171,84 @@ export function createSolarAltitudeDiagram(latitude) {
     // Determine if sun is north or south of observer
     const isSunNorth = solarDeclination > latitude;
     
-    // Draw the solar elevation line
-    const solarLineSVGAngle = -(solarDeclination % 360);  // Invert the angle
-    
-    const solarLineLength = radius * 0.4;
-    const solarLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    solarLine.setAttribute("x1", tangentStartX);
-    solarLine.setAttribute("y1", tangentStartY);
-    solarLine.setAttribute("transform", `rotate(${solarLineSVGAngle}, ${tangentStartX}, ${tangentStartY})`);
-    solarLine.setAttribute("x2", tangentStartX + solarLineLength);
-    solarLine.setAttribute("y2", tangentStartY);
-    solarLine.setAttribute("stroke", "orange");
-    solarLine.setAttribute("stroke-width", 2 * SCALE_FACTOR);
-    svg.appendChild(solarLine);
-
-    // Add angle markers
+    // Define angle radius for both solar and latitude angles
     const angleRadius = radius * 0.15; // Size of the angle arc
-
-    // Draw solar elevation angle
-    console.group('Solar Elevation Arc');
     
-    // Determine which side of tangent line to draw the arc
-    // If observer latitude > solar declination: sun appears in southern sky
-    // If observer latitude < solar declination: sun appears in northern sky
-    const isSunInSouth = latitude > solarDeclination;
-    const isNorthernHemisphere = latitude >= 0;
-    
-    // Convert tangent angle from radians to degrees for SVG
-    // Add 90° because SVG 0° is at 3 o'clock
-    const tangentBaseAngle = (tangentAngle * 180 / Math.PI) + 90;
-    
-    // For southern arc: use tangentBaseAngle + 180° to start from south side
-    // For northern arc: use tangentBaseAngle directly to start from north side
-    const arcBaseAngle = isSunInSouth ? tangentBaseAngle + 180 : tangentBaseAngle;
-    
-    // In Northern Hemisphere: add elevation to go up
-    // In Southern Hemisphere: subtract elevation to go up (because angles are inverted)
-    const sunElevationAngle = isNorthernHemisphere ? 
-        arcBaseAngle + solarElevation : 
-        arcBaseAngle - solarElevation;
+    // Draw the solar elevation line and angle only if sun is above horizon (with small tolerance)
+    if (solarElevation >= -0.1) {  // Allow for small rounding errors
+        const solarLineSVGAngle = -(solarDeclination % 360);  // Invert the angle
+        
+        const solarLineLength = radius * 0.4;
+        const solarLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        solarLine.setAttribute("x1", tangentStartX);
+        solarLine.setAttribute("y1", tangentStartY);
+        solarLine.setAttribute("transform", `rotate(${solarLineSVGAngle}, ${tangentStartX}, ${tangentStartY})`);
+        solarLine.setAttribute("x2", tangentStartX + solarLineLength);
+        solarLine.setAttribute("y2", tangentStartY);
+        solarLine.setAttribute("stroke", "orange");
+        solarLine.setAttribute("stroke-width", 2 * SCALE_FACTOR);
+        svg.appendChild(solarLine);
 
-    console.log('Solar Elevation Arc Calculations:', {
-        latitude,
-        solarDeclination,
-        solarElevation,
-        isSunInSouth,
-        isNorthernHemisphere,
-        tangentAngleRad: tangentAngle,
-        tangentBaseAngle,
-        arcBaseAngle,
-        sunElevationAngle,
-        message: `Drawing arc on ${isSunInSouth ? 'south' : 'north'} side, going ${isNorthernHemisphere ? 'up' : 'down'} by ${solarElevation}°`
-    });
+        // Draw solar elevation angle
+        console.group('Solar Elevation Arc');
+        
+        // Determine which side of tangent line to draw the arc
+        // If observer latitude > solar declination: sun appears in southern sky
+        // If observer latitude < solar declination: sun appears in northern sky
+        const isSunInSouth = latitude > solarDeclination;
+        const isNorthernHemisphere = latitude >= 0;
+        
+        // Convert tangent angle from radians to degrees for SVG
+        // Add 90° because SVG 0° is at 3 o'clock
+        const tangentBaseAngle = (tangentAngle * 180 / Math.PI) + 90;
+        
+        // For southern arc: use tangentBaseAngle + 180° to start from south side
+        // For northern arc: use tangentBaseAngle directly to start from north side
+        const arcBaseAngle = isSunInSouth ? tangentBaseAngle + 180 : tangentBaseAngle;
+        
+        // In Northern Hemisphere: add elevation to go up
+        // In Southern Hemisphere: subtract elevation to go up (because angles are inverted)
+        const sunElevationAngle = isNorthernHemisphere ? 
+            arcBaseAngle + solarElevation : 
+            arcBaseAngle - solarElevation;
 
-    drawArcAngle({
-        x: tangentStartX,
-        y: tangentStartY,
-        line1Angle: arcBaseAngle,         // Start from correct side of tangent
-        line2Angle: sunElevationAngle,    // Go up by solar elevation
-        offset: angleRadius * 2.5,        // Increased offset to move label further out
-        label: `${solarElevation.toFixed(1)}°`,
-        labelOutside: true,
-        style: {
-            color: 'orange',
-            width: SCALE_FACTOR
-        },
-        labelStyle: {
-            fontSize: 10 * SCALE_FACTOR,  // Reduced font size from 12 to 10
-            color: 'orange',
-            bold: false
-        },
-        svg: svg,
-        debug: true,  // Enable debug logging in drawArcAngle
-        angleType: 'solar'
-    });
+        console.log('Solar Elevation Arc Calculations:', {
+            latitude,
+            solarDeclination,
+            solarElevation,
+            isSunInSouth,
+            isNorthernHemisphere,
+            tangentAngleRad: tangentAngle,
+            tangentBaseAngle,
+            arcBaseAngle,
+            sunElevationAngle,
+            message: `Drawing arc on ${isSunInSouth ? 'south' : 'north'} side, going ${isNorthernHemisphere ? 'up' : 'down'} by ${solarElevation}°`
+        });
 
-    console.groupEnd();
+        drawArcAngle({
+            x: tangentStartX,
+            y: tangentStartY,
+            line1Angle: arcBaseAngle,         // Start from correct side of tangent
+            line2Angle: sunElevationAngle,    // Go up by solar elevation
+            offset: angleRadius * 2.5,        // Increased offset to move label further out
+            label: `${solarElevation.toFixed(1)}°`,
+            labelOutside: true,
+            style: {
+                color: 'orange',
+                width: SCALE_FACTOR
+            },
+            labelStyle: {
+                fontSize: 10 * SCALE_FACTOR,  // Reduced font size from 12 to 10
+                color: 'orange',
+                bold: false
+            },
+            svg: svg,
+            debug: true,  // Enable debug logging in drawArcAngle
+            angleType: 'solar'
+        });
+
+        console.groupEnd();
+    }
 
     // Add latitude angle
     console.group('Latitude Arc');

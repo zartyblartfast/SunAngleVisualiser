@@ -141,21 +141,24 @@ function drawArcAndShading(svg, centerX, centerY, radius, tangentSVGAngle, offse
 
 // Function to draw the solar altitude line
 function drawDynamicSunLine(svg, centerX, centerY, radius, latitude, solarDeclination, solarElevation) {
-    // Use solar declination directly for SVG angle
-    const sunSVGAngle = solarDeclination % 360;
-    const sunRadians = (sunSVGAngle * Math.PI) / 180;
+    // Only draw sun line if solar elevation is above horizon (with small tolerance)
+    if (solarElevation >= -0.1) {
+        // Use solar declination directly for SVG angle
+        const sunSVGAngle = solarDeclination % 360;
+        const sunRadians = (sunSVGAngle * Math.PI) / 180;
 
-    const endX = centerX + radius * 1.5 * Math.cos(sunRadians);
-    const endY = centerY - radius * 1.5 * Math.sin(sunRadians);
+        const endX = centerX + radius * 1.5 * Math.cos(sunRadians);
+        const endY = centerY - radius * 1.5 * Math.sin(sunRadians);
 
-    const sunLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    sunLine.setAttribute("x1", centerX);
-    sunLine.setAttribute("y1", centerY);
-    sunLine.setAttribute("x2", endX);
-    sunLine.setAttribute("y2", endY);
-    sunLine.setAttribute("stroke", "orange");
-    sunLine.setAttribute("stroke-width", "2");
-    svg.appendChild(sunLine);
+        const sunLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        sunLine.setAttribute("x1", centerX);
+        sunLine.setAttribute("y1", centerY);
+        sunLine.setAttribute("x2", endX);
+        sunLine.setAttribute("y2", endY);
+        sunLine.setAttribute("stroke", "orange");
+        sunLine.setAttribute("stroke-width", "2");
+        svg.appendChild(sunLine);
+    }
 }
 
 // Function to add informational labels

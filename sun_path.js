@@ -313,61 +313,73 @@ export function updateSunPosition(altitude, azimuth) {
         )
     ];
     
-    // Update elevation line - starting from center and going up at the correct angle
-    const elevationLinePoints = [
-        new THREE.Vector3(0, 0, 0),  // Start from center
-        new THREE.Vector3(
-            radius * Math.cos(altitudeRad) * Math.sin(azimuthRad),  // X component
-            radius * Math.sin(altitudeRad),                         // Y component (height)
-            radius * Math.cos(altitudeRad) * Math.cos(azimuthRad)   // Z component
-        )
-    ];
+    // Only show elevation line and shading when sun is above horizon (with small tolerance)
+    if (altitude >= -0.1) {
+        // Update elevation line - starting from center and going up at the correct angle
+        const elevationLinePoints = [
+            new THREE.Vector3(0, 0, 0),  // Start from center
+            new THREE.Vector3(
+                radius * Math.cos(altitudeRad) * Math.sin(azimuthRad),  // X component
+                radius * Math.sin(altitudeRad),                         // Y component (height)
+                radius * Math.cos(altitudeRad) * Math.cos(azimuthRad)   // Z component
+            )
+        ];
 
-    // Create arc geometry
-    const segments = 20;  // Number of segments in the arc
-    const arcPoints = [];
-    arcPoints.push(new THREE.Vector3(0, 0, 0));  // Center point
-    
-    // Add points along the ground to the azimuth end
-    for (let i = 0; i <= segments; i++) {
-        const t = i / segments;
-        arcPoints.push(new THREE.Vector3(
-            t * azimuthLinePoints[1].x,
-            0,
-            t * azimuthLinePoints[1].z
-        ));
+        // Create arc geometry
+        const segments = 20;  // Number of segments in the arc
+        const arcPoints = [];
+        arcPoints.push(new THREE.Vector3(0, 0, 0));  // Center point
+        
+        // Add points along the ground to the azimuth end
+        for (let i = 0; i <= segments; i++) {
+            const t = i / segments;
+            arcPoints.push(new THREE.Vector3(
+                t * azimuthLinePoints[1].x,
+                0,
+                t * azimuthLinePoints[1].z
+            ));
+        }
+        
+        // Add points along the dome to the elevation point
+        for (let i = segments; i >= 0; i--) {
+            const t = i / segments;
+            arcPoints.push(new THREE.Vector3(
+                elevationLinePoints[1].x * t,
+                elevationLinePoints[1].y * Math.sin(Math.PI * t / 2),
+                elevationLinePoints[1].z * t
+            ));
+        }
+        
+        // Create faces for the arc
+        const indices = [];
+        for (let i = 1; i < arcPoints.length - 1; i++) {
+            indices.push(0, i, i + 1);
+        }
+        
+        // Update the arc geometry
+        const arcGeometry = new THREE.BufferGeometry();
+        arcGeometry.setFromPoints(arcPoints);
+        arcGeometry.setIndex(indices);
+        arcGeometry.computeVertexNormals();
+        sunArc.geometry.dispose();
+        sunArc.geometry = arcGeometry;
+        
+        // Update elevation line
+        elevationLine.geometry.setFromPoints(elevationLinePoints);
+        elevationLine.geometry.attributes.position.needsUpdate = true;
+        
+        // Make elevation line and sun arc visible
+        elevationLine.visible = true;
+        sunArc.visible = true;
+    } else {
+        // Hide elevation line and sun arc when sun is below horizon
+        elevationLine.visible = false;
+        sunArc.visible = false;
     }
     
-    // Add points along the dome to the elevation point
-    for (let i = segments; i >= 0; i--) {
-        const t = i / segments;
-        arcPoints.push(new THREE.Vector3(
-            elevationLinePoints[1].x * t,
-            elevationLinePoints[1].y * Math.sin(Math.PI * t / 2),
-            elevationLinePoints[1].z * t
-        ));
-    }
-    
-    // Create faces for the arc
-    const indices = [];
-    for (let i = 1; i < arcPoints.length - 1; i++) {
-        indices.push(0, i, i + 1);
-    }
-    
-    // Update the arc geometry
-    const arcGeometry = new THREE.BufferGeometry();
-    arcGeometry.setFromPoints(arcPoints);
-    arcGeometry.setIndex(indices);
-    arcGeometry.computeVertexNormals();
-    sunArc.geometry.dispose();
-    sunArc.geometry = arcGeometry;
-    
-    // Update both lines
+    // Always update azimuth line
     azimuthLine.geometry.setFromPoints(azimuthLinePoints);
     azimuthLine.geometry.attributes.position.needsUpdate = true;
-    
-    elevationLine.geometry.setFromPoints(elevationLinePoints);
-    elevationLine.geometry.attributes.position.needsUpdate = true;
 }
 
 export function drawSunPath() {
