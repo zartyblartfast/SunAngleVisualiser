@@ -48,19 +48,6 @@ header p {
   font-weight: bold;
 }
 
-/* Adjust input fields to be narrower */
-.new-inputs-section input {
-  flex: 1;
-  max-width: 112px;
-  padding: 5px;
-}
-
-/* Adjust specific input fields to be narrower */
-.new-inputs-section input[id="sun-height-input"],
-.new-inputs-section input[id="latitude-overhead-input"] {
-  max-width: 112px;
-}
-
 /* Style for the data table */
 .data-table-section {
   position: relative;
@@ -400,16 +387,6 @@ html {
   margin-left: 10px;
 }
 
-/* Set consistent width for the reference field and all output fields */
-#latitude-overhead-input,
-#solar-elevation-output,
-#solar-azimuth-output,
-#solar-zenith-output {
-    width: 80px;
-    margin-left: auto;
-    margin-right: 0;
-}
-
 /* Align the output fields with the same right edge */
 .output-group {
     display: flex;
@@ -426,6 +403,7 @@ input#solar-zenith-output {
     width: 80px !important;
     min-width: 80px !important;
     max-width: 80px !important;
+    margin-left: 150px !important;  /* Match the position of latitude-overhead-input */
 }
 
 /* Set fixed width for time input fields */
@@ -436,12 +414,12 @@ input#local-time {
     max-width: 80px !important;
 }
 
-/* Set consistent width for location number input fields only */
+/* Set fixed width for location input fields */
 .new-inputs-section input#location-latitude-input,
 .new-inputs-section input#location-longitude-input {
-    width: 112px !important;
-    max-width: 112px !important;
-    padding: 5px;
+    width: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
     box-sizing: border-box !important;
 }
 
