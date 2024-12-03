@@ -343,7 +343,6 @@ html {
   padding: 20px;  /* Add padding around diagrams */
 }
 
-#spherical-earth-diagram,
 #solar-altitude-diagram,
 .test-diagram-container {
   flex: 0 0 auto;  /* Don't grow or shrink */
@@ -354,7 +353,6 @@ html {
   padding: 10px;  /* Add padding inside containers */
 }
 
-#spherical-earth-diagram,
 #solar-altitude-diagram {
   min-height: 300px; /* Match the SVG height */
 }
