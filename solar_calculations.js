@@ -119,6 +119,12 @@ export function calculateSolarElevation(latitude, solarDeclination) {
     
     // For all other latitudes, use standard calculation
     const solarElevation = 90 - Math.abs(latitude - solarDeclination);
+    
+    // Special handling for solstice cases (when declination is at its limits)
+    if ((Math.abs(Math.abs(solarDeclination) - 23.5) < 0.1) && (Math.abs(solarElevation) < 0.1)) {
+        return 0.0;  // Return exact zero for better display
+    }
+    
     return solarElevation;
 }
 
