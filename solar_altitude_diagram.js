@@ -41,6 +41,25 @@ export function createSolarAltitudeDiagram(latitude) {
     svg.setAttribute("height", svgHeight);
     svgContainer.appendChild(svg);
 
+    // Define arrowhead marker for solar line
+    const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    marker.setAttribute("id", "solarArrow");
+    marker.setAttribute("viewBox", "0 0 10 10");
+    marker.setAttribute("refX", "5");
+    marker.setAttribute("refY", "5");
+    marker.setAttribute("markerWidth", 4 * SCALE_FACTOR);
+    marker.setAttribute("markerHeight", 4 * SCALE_FACTOR);
+    marker.setAttribute("orient", "auto-start-reverse");
+    
+    const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    arrowPath.setAttribute("d", "M 0 0 L 10 5 L 0 10 z");
+    arrowPath.setAttribute("fill", "orange");
+    
+    marker.appendChild(arrowPath);
+    defs.appendChild(marker);
+    svg.appendChild(defs);
+
     // Add elevation label
     const elevationLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
     elevationLabel.setAttribute("x", 10 * SCALE_FACTOR);
@@ -48,6 +67,65 @@ export function createSolarAltitudeDiagram(latitude) {
     elevationLabel.setAttribute("font-size", 12 * SCALE_FACTOR);
     elevationLabel.textContent = `Solar Elevation: ${document.getElementById('solar-elevation-output').value}°`;
     svg.appendChild(elevationLabel);
+
+    // Draw latitude reference lines
+    for (let i = 90; i >= -90; i -= 15) {
+        const angleRad = (-i * Math.PI) / 180;  // Negate for SVG coordinates
+        const y = centerY - (radius * Math.sin(angleRad));
+        const lineLength = 2 * Math.sqrt(radius ** 2 - (y - centerY) ** 2);
+
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", centerX - lineLength / 2);
+        line.setAttribute("y1", y);
+        line.setAttribute("x2", centerX + lineLength / 2);
+        line.setAttribute("y2", y);
+
+        if (i === 0) {
+            line.setAttribute("stroke", "black");
+            line.setAttribute("stroke-width", 2 * SCALE_FACTOR);
+            line.setAttribute("stroke-dasharray", `${5 * SCALE_FACTOR},${5 * SCALE_FACTOR}`);
+        } else {
+            line.setAttribute("stroke", "lightgray");
+            line.setAttribute("stroke-width", SCALE_FACTOR);
+        }
+        
+        svg.appendChild(line);
+
+        // Add labels and connectors for each latitude line
+        // Calculate points on circle's edge using same method as spherical Earth diagram
+        const xOnCircle = centerX - radius * Math.cos(angleRad);
+        const yOnCircle = centerY - radius * Math.sin(angleRad);
+
+        // Calculate perpendicular offset from circle edge
+        const gap = 15 * SCALE_FACTOR;
+        const xOffset = gap * Math.cos(angleRad);
+        const yOffset = gap * Math.sin(angleRad);
+
+        // Create label
+        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        label.setAttribute("x", xOnCircle - xOffset);
+        label.setAttribute("y", yOnCircle - yOffset);
+        label.setAttribute("font-family", "Arial");
+        label.setAttribute("font-size", (10 + (SCALE_FACTOR - 1) * 2) + "px");
+        label.setAttribute("fill", "black");
+        label.setAttribute("dominant-baseline", "middle");
+        label.setAttribute("text-anchor", "end");
+        label.textContent = `${-i}°`;  // Negate i to show positive in north, negative in south
+        svg.appendChild(label);
+
+        // Create connector line (except for poles where it would be too short)
+        if (i !== 90 && i !== -90) {
+            const connector = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            connector.setAttribute("x1", xOnCircle);
+            connector.setAttribute("y1", yOnCircle);
+            connector.setAttribute("x2", xOnCircle - xOffset);
+            connector.setAttribute("y2", yOnCircle - yOffset);
+            connector.setAttribute("stroke", "rgb(180, 180, 180)");
+            connector.setAttribute("stroke-width", 0.75 * SCALE_FACTOR);
+            connector.setAttribute("stroke-dasharray", `${2 * SCALE_FACTOR},${2 * SCALE_FACTOR}`);
+            svg.appendChild(connector);
+        }
+    }
 
     // Draw Earth circle
     const earthCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -58,6 +136,24 @@ export function createSolarAltitudeDiagram(latitude) {
     earthCircle.setAttribute("stroke-width", Math.max(1, SCALE_FACTOR));
     earthCircle.setAttribute("fill", "none");
     svg.appendChild(earthCircle);
+
+    // Draw Tropics
+    const tropicLatitudes = [23.5, -23.5];
+    for (let latitude of tropicLatitudes) {
+        const y = centerY - (radius * Math.sin((latitude * Math.PI) / 180));
+        const lineLength = 2 * Math.sqrt(radius ** 2 - (y - centerY) ** 2);
+
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", centerX - lineLength / 2);
+        line.setAttribute("y1", y);
+        line.setAttribute("x2", centerX + lineLength / 2);
+        line.setAttribute("y2", y);
+        line.setAttribute("stroke", "black");
+        line.setAttribute("stroke-width", 2 * SCALE_FACTOR);
+        line.setAttribute("stroke-dasharray", `${5 * SCALE_FACTOR},${5 * SCALE_FACTOR}`);
+
+        svg.appendChild(line);
+    }
 
     // Draw night-side semi-circle with rotation
     console.log('About to create night-side semi-circle');
@@ -156,26 +252,42 @@ export function createSolarAltitudeDiagram(latitude) {
     
     // For negative latitudes, we need to ensure the label stays on the right side
     // and below the equator
-    const labelOutside = true;
-    const labelOffset = radius * (latitude >= 0 ? 0.25 : -0.25); // Increased offset from 0.15 to 0.25
+    const smallAngleRange = 20;
+    const labelOutside = Math.abs(latitude) <= smallAngleRange;
+    
+    let labelOffset;
+    if (Math.abs(latitude) <= smallAngleRange) {
+        // For small angles, use larger offset since we're placing label away from arc
+        labelOffset = radius * 0.6;  // Increased from 0.15 to 0.6 for better visibility
+    } else {
+        // For larger angles, keep existing behavior
+        labelOffset = radius * (latitude >= 0 ? 0.45 : -0.45);
+    }
+
+    // Adjust label position for small angles
+    let labelPosition = 'middle';
+    if (Math.abs(latitude) <= smallAngleRange) {
+        labelPosition = latitude >= 0 ? 'below' : 'above';
+    }
     
     drawArcAngle({
         x: centerX,
         y: centerY,
         line1Angle: 0,  // Equator line is at 0 degrees in SVG system
         line2Angle: svgLatitude,
-        offset: Math.abs(radius * 0.15),  // Arc size stays the same
+        offset: Math.abs(radius * 0.25),
         label: `${Math.abs(latitude).toFixed(1)}°`,
         labelOutside: labelOutside,
-        labelOffset: labelOffset,  // Pass the increased offset
+        labelOffset: labelOffset,
+        labelPosition: labelPosition,  // Add new parameter for label positioning
         style: {
             color: 'red',
-            width: 1
+            width: 2 * SCALE_FACTOR
         },
         labelStyle: {
             color: 'red',
-            fontSize: 12,
-            bold: false
+            fontSize: 18,
+            bold: true
         },
         svg: svg,
         debug: true,
@@ -214,11 +326,22 @@ export function createSolarAltitudeDiagram(latitude) {
     if (solarElevation >= -0.1) {  // Allow for small rounding errors
         const solarLineSVGAngle = -(solarDeclination % 360);  // Invert the angle
         
-        const solarLineLength = radius * 0.4;
+        // Calculate maximum possible line length to reach near SVG edges
+        // Leave a 20px margin scaled by SCALE_FACTOR
+        const margin = 20 * SCALE_FACTOR;
+        const maxDistanceX = Math.min(tangentStartX - margin, svgWidth - tangentStartX - margin);
+        const maxDistanceY = Math.min(tangentStartY - margin, svgHeight - tangentStartY - margin);
+        
+        // Calculate how far we can extend in both x and y directions given the angle
+        const angleRad = solarLineSVGAngle * Math.PI / 180;
+        const cosAbs = Math.abs(Math.cos(angleRad));
+        const sinAbs = Math.abs(Math.sin(angleRad));
+        
+        // Calculate the maximum length that won't exceed boundaries in either direction
+        const solarLineLength = cosAbs > 0.0001 ? maxDistanceX / cosAbs : maxDistanceY / sinAbs;
         
         // Calculate solar line coordinates
         const sunLineStart = { x: tangentStartX, y: tangentStartY };
-        const angleRad = solarLineSVGAngle * Math.PI / 180;
         const sunLineEnd = {
             x: sunLineStart.x + solarLineLength * Math.cos(angleRad),
             y: sunLineStart.y + solarLineLength * Math.sin(angleRad)
@@ -231,15 +354,34 @@ export function createSolarAltitudeDiagram(latitude) {
             length: solarLineLength
         });
 
-        // Draw solar line using calculated coordinates
-        const solarLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        solarLine.setAttribute("x1", sunLineStart.x);
-        solarLine.setAttribute("y1", sunLineStart.y);
-        solarLine.setAttribute("x2", sunLineEnd.x);
-        solarLine.setAttribute("y2", sunLineEnd.y);
-        solarLine.setAttribute("stroke", "orange");
-        solarLine.setAttribute("stroke-width", 2 * SCALE_FACTOR);
-        svg.appendChild(solarLine);
+        // Draw the sun line with arrow at 60% from tangent line
+        // Calculate point at 60% along the line
+        const midpoint = {
+            x: sunLineStart.x + (sunLineEnd.x - sunLineStart.x) * 0.6,
+            y: sunLineStart.y + (sunLineEnd.y - sunLineStart.y) * 0.6
+        };
+
+        // First segment (no arrow)
+        const sunLine1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        sunLine1.setAttribute("x1", sunLineStart.x);
+        sunLine1.setAttribute("y1", sunLineStart.y);
+        sunLine1.setAttribute("x2", midpoint.x);
+        sunLine1.setAttribute("y2", midpoint.y);
+        sunLine1.setAttribute("stroke", "orange");
+        sunLine1.setAttribute("stroke-width", 2.5 * SCALE_FACTOR);
+
+        // Second segment (with arrow at start)
+        const sunLine2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        sunLine2.setAttribute("x1", midpoint.x);
+        sunLine2.setAttribute("y1", midpoint.y);
+        sunLine2.setAttribute("x2", sunLineEnd.x);
+        sunLine2.setAttribute("y2", sunLineEnd.y);
+        sunLine2.setAttribute("stroke", "orange");
+        sunLine2.setAttribute("stroke-width", 2.5 * SCALE_FACTOR);
+        sunLine2.setAttribute("marker-start", "url(#solarArrow)");
+
+        svg.appendChild(sunLine1);
+        svg.appendChild(sunLine2);
 
         // Calculate transformed coordinates
         console.log('Solar Line Coordinates:', {
@@ -283,6 +425,28 @@ export function createSolarAltitudeDiagram(latitude) {
             message: `Drawing arc on ${isSunInSouth ? 'south' : 'north'} side, ${isSunInSouth ? 'adding' : 'subtracting'} ${solarElevation}°`
         });
 
+        // Enhanced label positioning logic for extreme latitudes
+        const latitudeAbs = Math.abs(latitude);
+        let labelPosition = 'middle';
+        let labelRadialOffset = angleRadius * 3.5;  // Default offset
+        let labelHorizontalOffset = 0;
+        let labelVerticalOffset = 0;
+
+        if (latitudeAbs > 50) {
+            // For extreme latitudes, move label outward and upward
+            const extremityFactor = (latitudeAbs - 50) / 40;  // 0 to 1 scale for 50° to 90°
+            labelPosition = 'above';  // Always position above the line for better visibility
+            
+            // Increase radial distance as we approach the poles
+            labelRadialOffset = angleRadius * (3.5 + extremityFactor * 1.5);
+            
+            // Add horizontal offset to move label further from origin
+            labelHorizontalOffset = angleRadius * (extremityFactor * 1.0);
+            
+            // Add vertical offset to lift label above the sun line
+            labelVerticalOffset = -angleRadius * (0.5 + extremityFactor * 0.5);
+        }
+
         drawArcAngle({
             x: tangentStartX,
             y: tangentStartY,
@@ -291,19 +455,21 @@ export function createSolarAltitudeDiagram(latitude) {
             offset: angleRadius * 2.5,
             label: `${solarElevation.toFixed(1)}°`,
             labelOutside: true,
-            labelOffset: angleRadius * 4.0,
-            // Force label to use same angle sequence as arc
+            labelOffset: labelRadialOffset,
             labelStartAngle: arcBaseAngle,
             labelEndAngle: sunElevationAngle,
-            forceLabelDirection: true,  // New parameter to override default midpoint calculation
+            forceLabelDirection: true,
+            labelPosition: labelPosition,
+            labelHorizontalOffset: labelHorizontalOffset,
+            labelVerticalOffset: labelVerticalOffset,
             style: {
                 color: 'orange',
-                width: SCALE_FACTOR
+                width: 2.5 * SCALE_FACTOR
             },
             labelStyle: {
                 fontSize: 10 * SCALE_FACTOR,
                 color: 'orange',
-                bold: false
+                bold: true  
             },
             svg: svg,
             debug: true,

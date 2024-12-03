@@ -36,6 +36,9 @@ export function normalizeAngle(angle) {
  *   @param {boolean} [params.forceLabelDirection] - Force label direction using provided angles
  *   @param {number} [params.labelStartAngle] - Start angle for forced label direction
  *   @param {number} [params.labelEndAngle] - End angle for forced label direction
+ *   @param {string} [params.labelPosition] - Position of the label ('above' | 'below')
+ *   @param {number} [params.labelHorizontalOffset] - Horizontal offset for label positioning
+ *   @param {number} [params.labelVerticalOffset] - Vertical offset for label positioning
  */
 export function drawArcAngle(params) {
     if (params.debug) {
@@ -142,8 +145,32 @@ export function drawArcAngle(params) {
             (params.labelOutside ? arcRadius * 1.3 : arcRadius * 0.7);
 
         const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        label.setAttribute("x", params.x + labelRadius * Math.cos(midAngle));
-        label.setAttribute("y", params.y - labelRadius * Math.sin(midAngle));
+        
+        // Calculate default arc position first
+        const arcX = params.x + labelRadius * Math.cos(midAngle);
+        const arcY = params.y - labelRadius * Math.sin(midAngle);
+
+        // Handle special label positioning
+        if (params.labelPosition === 'above') {
+            // Position above with adjustable horizontal and vertical offsets
+            const baseX = params.x + (params.labelHorizontalOffset || 0);
+            const baseY = params.y + (params.labelVerticalOffset || 0);
+            
+            label.setAttribute("x", baseX);
+            label.setAttribute("y", baseY);
+        } else if (params.labelPosition === 'below') {
+            // Position below with adjustable horizontal and vertical offsets
+            const baseX = params.x + (params.labelHorizontalOffset || 0);
+            const baseY = params.y - (params.labelVerticalOffset || 0);
+            
+            label.setAttribute("x", baseX);
+            label.setAttribute("y", baseY);
+        } else {
+            // Default positioning along the arc
+            label.setAttribute("x", arcX + (params.labelHorizontalOffset || 0));
+            label.setAttribute("y", arcY + (params.labelVerticalOffset || 0));
+        }
+        
         label.setAttribute("fill", params.labelStyle.color);
         label.setAttribute("font-size", params.labelStyle.fontSize);
         if (params.labelStyle.bold) {
