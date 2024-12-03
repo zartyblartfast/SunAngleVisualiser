@@ -266,8 +266,10 @@ export function createSolarAltitudeDiagram(latitude) {
         // For northern arc: use tangentBaseAngle directly to start from north side
         const arcBaseAngle = isSunInSouth ? tangentBaseAngle + 180 : tangentBaseAngle;
         
-        // Add elevation to go up from the base angle
-        const sunElevationAngle = arcBaseAngle + solarElevation;
+        // Add or subtract elevation based on sun position to ensure arc goes up
+        const sunElevationAngle = isSunInSouth ? 
+            arcBaseAngle + solarElevation : 
+            arcBaseAngle - solarElevation;
 
         console.log('Solar Elevation Arc Calculations:', {
             latitude,
@@ -278,7 +280,7 @@ export function createSolarAltitudeDiagram(latitude) {
             tangentBaseAngle,
             arcBaseAngle,
             sunElevationAngle,
-            message: `Drawing arc on ${isSunInSouth ? 'south' : 'north'} side, going up by ${solarElevation}°`
+            message: `Drawing arc on ${isSunInSouth ? 'south' : 'north'} side, ${isSunInSouth ? 'adding' : 'subtracting'} ${solarElevation}°`
         });
 
         drawArcAngle({
