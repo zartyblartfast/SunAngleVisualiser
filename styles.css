@@ -27,10 +27,12 @@ header p {
 
 /* Style for the new inputs section */
 .new-inputs-section div {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 5px;
   margin-bottom: 10px;
+  padding-right: 30px;  /* Make room for help icon */
 }
 
 /* Fixed width for labels and apply the same font as the header */
@@ -121,6 +123,10 @@ header p {
 .help-icon {
   cursor: pointer;
   margin-left: 5px;
+  display: inline-flex;
+  align-items: center;
+  position: absolute;
+  right: 10px;
   color: blue;
   padding-left: 5px;
 }
@@ -411,4 +417,36 @@ html {
     justify-content: flex-start;
     width: 100%;
     gap: 0;
+}
+
+/* Set fixed width for output fields */
+input#solar-elevation-output,
+input#solar-azimuth-output,
+input#solar-zenith-output {
+    width: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
+}
+
+/* Set fixed width for time input fields */
+input#solar-time,
+input#local-time {
+    width: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
+}
+
+/* Set consistent width for location number input fields only */
+.new-inputs-section input#location-latitude-input,
+.new-inputs-section input#location-longitude-input {
+    width: 112px !important;
+    max-width: 112px !important;
+    padding: 5px;
+    box-sizing: border-box !important;
+}
+
+/* Reset slider width to original size */
+input[type="range"]#location-latitude-slider,
+input[type="range"]#location-longitude-slider {
+    width: 150px !important;  /* Return to original wider size */
 }
