@@ -1,5 +1,4 @@
 import { createSolarAltitudeDiagram } from './solar_altitude_diagram.js';
-import { createAngleTestDiagram } from './angle_test_diagram.js';
 import { updateLatitudeConstraints } from './latitude_constraint.js';
 import { calculateSolarDeclination, calculateSolarElevation, calculateSolarAzimuth, calculateDateFromDeclination } from './solar_calculations.js';
 import { initSunPathDiagram, updateSunPosition, drawSunPath } from './sun_path.js';
@@ -49,7 +48,6 @@ function updateAllDiagrams() {
     
     // Update diagrams that don't depend on azimuth
     createSolarAltitudeDiagram(parseFloat(document.getElementById('location-latitude-input').value));
-    createAngleTestDiagram();
     
     // Wait for the next tick to ensure output values are updated
     setTimeout(() => {
@@ -117,7 +115,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Update only diagrams, skip constraint updates
         createSolarAltitudeDiagram(latitude);
-        createAngleTestDiagram();
     });
     
     // Set initial solar time to 12:00 (noon)
@@ -168,7 +165,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Create initial diagrams
     createSolarAltitudeDiagram(initialLatitude);
-    createAngleTestDiagram();
 
     // Make sure to trigger any existing event listeners
     document.getElementById('latitude-overhead-input').dispatchEvent(new Event('input'));
@@ -250,7 +246,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Update diagrams
         createSolarAltitudeDiagram(parseFloat(document.getElementById('location-latitude-input').value));
-        createAngleTestDiagram();
         
         // Use the inverse calculations to find the date
         const currentDate = new Date(document.getElementById('selected-date').value);
