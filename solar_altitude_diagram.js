@@ -286,22 +286,27 @@ export function createSolarAltitudeDiagram(latitude) {
         drawArcAngle({
             x: tangentStartX,
             y: tangentStartY,
-            line1Angle: arcBaseAngle,         // Start from correct side of tangent
-            line2Angle: sunElevationAngle,    // Go up by solar elevation
-            offset: angleRadius * 2.5,        // Increased offset to move label further out
+            line1Angle: arcBaseAngle,
+            line2Angle: sunElevationAngle,
+            offset: angleRadius * 2.5,
             label: `${solarElevation.toFixed(1)}°`,
             labelOutside: true,
+            labelOffset: angleRadius * 4.0,
+            // Force label to use same angle sequence as arc
+            labelStartAngle: arcBaseAngle,
+            labelEndAngle: sunElevationAngle,
+            forceLabelDirection: true,  // New parameter to override default midpoint calculation
             style: {
                 color: 'orange',
                 width: SCALE_FACTOR
             },
             labelStyle: {
-                fontSize: 10 * SCALE_FACTOR,  // Reduced font size from 12 to 10
+                fontSize: 10 * SCALE_FACTOR,
                 color: 'orange',
                 bold: false
             },
             svg: svg,
-            debug: true,  // Enable debug logging in drawArcAngle
+            debug: true,
             angleType: 'solar'
         });
 

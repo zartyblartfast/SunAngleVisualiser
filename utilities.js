@@ -33,6 +33,9 @@ export function normalizeAngle(angle) {
  *   @param {SVGElement} params.svg - SVG element to draw into
  *   @param {boolean} params.debug - Enable console logging during development
  *   @param {string} [params.angleType] - Type of angle being drawn ('geographic' | 'solar')
+ *   @param {boolean} [params.forceLabelDirection] - Force label direction using provided angles
+ *   @param {number} [params.labelStartAngle] - Start angle for forced label direction
+ *   @param {number} [params.labelEndAngle] - End angle for forced label direction
  */
 export function drawArcAngle(params) {
     if (params.debug) {
@@ -123,8 +126,16 @@ export function drawArcAngle(params) {
 
     // Add label if provided
     if (params.label) {
-        // Calculate the midpoint angle for label positioning
-        const midAngle = ((startRad + endRad) / 2) % (2 * Math.PI);
+        let midAngle;
+        if (params.forceLabelDirection && params.labelStartAngle !== undefined && params.labelEndAngle !== undefined) {
+            // Use provided angles in exact sequence
+            const startRad = (params.labelStartAngle * Math.PI) / 180;
+            const endRad = (params.labelEndAngle * Math.PI) / 180;
+            midAngle = ((startRad + endRad) / 2) % (2 * Math.PI);
+        } else {
+            // Default behavior
+            midAngle = ((startRad + endRad) / 2) % (2 * Math.PI);
+        }
         
         // Use custom labelOffset if provided, otherwise calculate based on labelOutside
         const labelRadius = params.labelOffset || 
