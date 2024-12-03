@@ -29,7 +29,8 @@ header p {
 .new-inputs-section div {
   display: flex;
   align-items: center;
-  margin-bottom: 15px;
+  gap: 0;
+  margin-bottom: 10px;
 }
 
 /* Fixed width for labels and apply the same font as the header */
@@ -246,10 +247,30 @@ html {
   margin-left: 134px;
 }
 
+.new-inputs-section input[type="time"] {
+  margin: 0;
+  padding: 4px;
+  width: 100px;  /* Set fixed width for both time inputs */
+}
+
+.new-inputs-section div:has(#solar-time) {
+    padding-left: 0;  /* Remove the previous padding */
+}
+
+#solar-time {
+    margin-left: 154px !important;  /* Add margin to just the input field */
+}
+
 #eot-display {
-  margin-left: 10px;
+  display: inline-block;
+  white-space: nowrap;
+  text-align: right;
+  margin: 0;
+  margin-right: 4px;
+  padding: 0;
   font-family: monospace;
   color: #666;
+  min-width: 150px;
 }
 
 #map {
@@ -371,4 +392,23 @@ html {
 #arc-test-section input {
   width: 80px;
   margin-left: 10px;
+}
+
+/* Set consistent width for the reference field and all output fields */
+#latitude-overhead-input,
+#solar-elevation-output,
+#solar-azimuth-output,
+#solar-zenith-output {
+    width: 80px;
+    margin-left: auto;
+    margin-right: 0;
+}
+
+/* Align the output fields with the same right edge */
+.output-group {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    gap: 0;
 }

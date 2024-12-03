@@ -56,11 +56,11 @@
             </div>
             <div>
                 <label for="local-time">Local Standard Time:</label>
+                <span id="eot-display">EoT: 0:00</span>
                 <input type="time" id="local-time" disabled>
                 <span class="help-icon" data-help="Local time adjusted for your timezone offset from UTC. This is the time shown on clocks in your location.">
                     <i class="fas fa-question-circle"></i>
                 </span>
-                <span id="eot-display">EoT: 0:00</span>
             </div>
             <div>
                 <label for="latitude-overhead-input">Latitude at which the sun is directly overhead:</label>
@@ -80,10 +80,16 @@
             <div class="output-group">
                 <label for="solar-azimuth-output">Solar Azimuth (degrees):</label>
                 <input type="text" id="solar-azimuth-output" readonly>
+                <span class="help-icon" data-help="The horizontal angle of the sun measured clockwise from true North. 0° is North, 90° is East, 180° is South, and 270° is West.">
+                    <i class="fas fa-question-circle"></i>
+                </span>
             </div>
             <div class="output-group">
                 <label for="solar-zenith-output">Solar Zenith (degrees):</label>
                 <input type="text" id="solar-zenith-output" readonly>
+                <span class="help-icon" data-help="The angle between the sun and the vertical (zenith). 0° means the sun is directly overhead, 90° means the sun is at the horizon.">
+                    <i class="fas fa-question-circle"></i>
+                </span>
             </div>
         </section>
 
