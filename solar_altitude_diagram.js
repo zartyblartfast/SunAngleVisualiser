@@ -215,24 +215,48 @@ export function createSolarAltitudeDiagram(latitude) {
         const solarLineSVGAngle = -(solarDeclination % 360);  // Invert the angle
         
         const solarLineLength = radius * 0.4;
+        
+        // Calculate solar line coordinates
+        const sunLineStart = { x: tangentStartX, y: tangentStartY };
+        const angleRad = solarLineSVGAngle * Math.PI / 180;
+        const sunLineEnd = {
+            x: sunLineStart.x + solarLineLength * Math.cos(angleRad),
+            y: sunLineStart.y + solarLineLength * Math.sin(angleRad)
+        };
+
+        console.log('Solar Line Coordinates:', {
+            start: sunLineStart,
+            end: sunLineEnd,
+            angle: solarLineSVGAngle,
+            length: solarLineLength
+        });
+
+        // Draw solar line using calculated coordinates
         const solarLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        solarLine.setAttribute("x1", tangentStartX);
-        solarLine.setAttribute("y1", tangentStartY);
-        solarLine.setAttribute("transform", `rotate(${solarLineSVGAngle}, ${tangentStartX}, ${tangentStartY})`);
-        solarLine.setAttribute("x2", tangentStartX + solarLineLength);
-        solarLine.setAttribute("y2", tangentStartY);
+        solarLine.setAttribute("x1", sunLineStart.x);
+        solarLine.setAttribute("y1", sunLineStart.y);
+        solarLine.setAttribute("x2", sunLineEnd.x);
+        solarLine.setAttribute("y2", sunLineEnd.y);
         solarLine.setAttribute("stroke", "orange");
         solarLine.setAttribute("stroke-width", 2 * SCALE_FACTOR);
         svg.appendChild(solarLine);
 
+        // Calculate transformed coordinates
+        console.log('Solar Line Coordinates:', {
+            start: { x: tangentStartX, y: tangentStartY },
+            end: { x: sunLineEnd.x, y: sunLineEnd.y },
+            angle: solarLineSVGAngle,
+            length: solarLineLength
+        });
+
         // Draw solar elevation angle
         console.group('Solar Elevation Arc');
         
-        // Determine which side of tangent line to draw the arc
+        // Determine sun's position relative to observer
         // If observer latitude > solar declination: sun appears in southern sky
         // If observer latitude < solar declination: sun appears in northern sky
+        // If equal: sun is directly overhead
         const isSunInSouth = latitude > solarDeclination;
-        const isNorthernHemisphere = latitude >= 0;
         
         // Convert tangent angle from radians to degrees for SVG
         // Add 90° because SVG 0° is at 3 o'clock
@@ -242,23 +266,19 @@ export function createSolarAltitudeDiagram(latitude) {
         // For northern arc: use tangentBaseAngle directly to start from north side
         const arcBaseAngle = isSunInSouth ? tangentBaseAngle + 180 : tangentBaseAngle;
         
-        // In Northern Hemisphere: add elevation to go up
-        // In Southern Hemisphere: subtract elevation to go up (because angles are inverted)
-        const sunElevationAngle = isNorthernHemisphere ? 
-            arcBaseAngle + solarElevation : 
-            arcBaseAngle - solarElevation;
+        // Add elevation to go up from the base angle
+        const sunElevationAngle = arcBaseAngle + solarElevation;
 
         console.log('Solar Elevation Arc Calculations:', {
             latitude,
             solarDeclination,
             solarElevation,
             isSunInSouth,
-            isNorthernHemisphere,
             tangentAngleRad: tangentAngle,
             tangentBaseAngle,
             arcBaseAngle,
             sunElevationAngle,
-            message: `Drawing arc on ${isSunInSouth ? 'south' : 'north'} side, going ${isNorthernHemisphere ? 'up' : 'down'} by ${solarElevation}°`
+            message: `Drawing arc on ${isSunInSouth ? 'south' : 'north'} side, going up by ${solarElevation}°`
         });
 
         drawArcAngle({
