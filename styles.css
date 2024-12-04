@@ -61,6 +61,75 @@ header p {
 }
 
 .input-fields {
+    flex: 1;
+    min-width: 400px;
+}
+
+.input-fields > div {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 10px;
+    padding-right: 25px;
+    position: relative;
+}
+
+.input-fields label {
+    min-width: 150px;
+    max-width: 250px;
+    width: auto;
+    flex: 0 0 auto;
+}
+
+.input-fields input[type="range"] {
+    flex: 0 0 90px;
+    min-width: 90px;
+}
+
+.input-fields input[type="number"],
+.input-fields input[type="time"],
+.input-fields input[type="date"] {
+    width: 80px;
+    flex: 0 0 auto;
+}
+
+.input-fields .help-icon {
+    position: absolute;
+    right: 0;
+    color: #666;
+}
+
+.input-fields div:has(#solar-time) input,
+.input-fields div:has(#local-time) input {
+    margin-left: auto;
+    margin-right: 5px;
+}
+
+.input-fields div:has(#local-time) #eot-display {
+    margin-left: auto;
+}
+
+.input-fields div:has(#local-time) input {
+    margin-left: 4px;
+}
+
+.input-fields div:has(input[type="range"]) input[type="number"] {
+    margin-left: 5px;
+}
+
+.input-fields #eot-display {
+    display: inline-block;
+    white-space: nowrap;
+    text-align: right;
+    margin: 0;
+    margin-right: 4px;
+    padding: 0;
+    font-family: monospace;
+    color: #666;
+    min-width: 80px;
+}
+
+.input-fields {
     border: 2px dashed green;
 }
 
@@ -226,7 +295,7 @@ header p {
   display: inline-flex;
   align-items: center;
   position: absolute;
-  right: -10px;
+  right: 0;
   color: blue;
 }
 
@@ -758,7 +827,7 @@ html, body {
 }
 
 #solar-time {
-    margin-left: 154px !important;
+    margin-left: auto !important;
 }
 
 #eot-display {
@@ -771,6 +840,28 @@ html, body {
     font-family: monospace;
     color: #666;
     min-width: 150px;
+    margin-left: auto;
+    margin-right: 5px;
+}
+
+/* Specific handling for location input sliders */
+.input-fields div:has(#location-latitude-input) input[type="range"],
+.input-fields div:has(#location-longitude-input) input[type="range"],
+.input-fields div:has(#latitude-overhead-input) input[type="range"] {
+    margin-left: auto;
+    margin-right: 5px;
+}
+
+.input-fields div:has(#location-latitude-input) input[type="number"],
+.input-fields div:has(#location-longitude-input) input[type="number"],
+.input-fields div:has(#latitude-overhead-input) input[type="number"] {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+/* Specific handling for date field */
+.input-fields div:has(#selected-date) input[type="date"] {
+    width: 105px;  
     margin-left: auto;
     margin-right: 5px;
 }
