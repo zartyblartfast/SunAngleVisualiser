@@ -32,14 +32,18 @@ header p {
   align-items: center;
   gap: 5px;
   margin-bottom: 10px;
-  padding-right: 30px;  /* Make room for help icon */
+  width: 450px;
+  padding-right: 15px;
+  position: relative;
 }
 
 /* Fixed width for labels and apply the same font as the header */
 .new-inputs-section label {
-  width: 340px;
-  margin-right: 10px;
+  min-width: 150px;
+  max-width: 250px;
+  width: auto;
   font-family: inherit;
+  flex: 1;
 }
 
 /* Bold specific labels */
@@ -113,9 +117,8 @@ header p {
   display: inline-flex;
   align-items: center;
   position: absolute;
-  right: 10px;
+  right: -10px;
   color: blue;
-  padding-left: 5px;
 }
 
 .help-icon i {
@@ -207,43 +210,108 @@ html {
   overflow-y: scroll;
 }
 
+/* Input container layout */
+.inputs-container {
+    display: flex;
+    gap: 5px;
+    flex-wrap: nowrap;
+    width: 100%;
+}
+
+/* Input section sizing */
+.new-inputs-section {
+    flex: 0 0 600px;  /* Fixed width to prevent shrinking */
+    min-width: 600px;  /* Ensure minimum width */
+}
+
+/* Map section sizing */
+.map-section {
+    flex: 0 0 250px;  /* Reduced from 350px */
+    margin-left: auto;  /* Push to the right */
+}
+
+#map {
+    width: 100%;
+    height: 300px;
+}
+
+.location-search-container {
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+#location-search {
+    flex: 1;
+    min-width: 100px;
+}
+
+/* Calculated outputs section */
+.calculated-outputs-section {
+    max-width: 950px;
+    margin: 0 auto 5px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+/* Input fields common styles */
+.new-inputs-section input[type="range"] {
+    flex: 0 0 90px;  /* Reduced from flex: 1 to fixed width */
+    min-width: 90px;
+    margin-right: 5px;
+}
+
+.new-inputs-section input[type="number"],
+.new-inputs-section input[type="time"],
+.new-inputs-section input[type="date"],
+.outputs-container input {
+    width: 80px;
+    flex: 0 0 auto;
+}
+
+/* Label styles */
+.new-inputs-section label,
+.outputs-container label {
+    min-width: 150px;
+    max-width: 250px;
+    width: auto;
+    flex: 1;
+    margin-right: 5px;
+}
+
 /* Style for the slider inputs */
 .new-inputs-section div input[type="range"] {
-  width: 112px !important;
-  min-width: 112px !important;
-  max-width: 112px !important;
-  margin-right: 10px;
-  vertical-align: middle;
-  -webkit-appearance: slider-horizontal !important;  /* For Safari */
+    -webkit-appearance: slider-horizontal !important;  /* For Safari */
 }
 
 /* Target Webkit browsers specifically */
 .new-inputs-section div input[type="range"]::-webkit-slider-runnable-track {
-  width: 112px !important;
+    width: 90px !important;  /* Reduced from previous value */
 }
 
 /* Target Firefox */
 .new-inputs-section div input[type="range"]::-moz-range-track {
-  width: 112px !important;
+    width: 90px !important;  /* Reduced from previous value */
 }
 
 /* Target IE/Edge */
 .new-inputs-section div input[type="range"]::-ms-track {
-  width: 112px !important;
+    width: 90px !important;  /* Reduced from previous value */
 }
 
 /* Add specific styling for date and time inputs */
 .new-inputs-section input[type="date"],
 .new-inputs-section input[type="time"] {
-  max-width: 112px;
-  padding: 5px;
-  margin-left: 134px;
+    max-width: 170px;
+    padding: 5px;
+    margin-left: 0;
 }
 
 .new-inputs-section input[type="time"] {
-  margin: 0;
-  padding: 4px;
-  width: 100px;  /* Set fixed width for both time inputs */
+    margin: 0;
+    padding: 4px;
+    width: 100px;  /* Set fixed width for both time inputs */
 }
 
 .new-inputs-section div:has(#solar-time) {
@@ -264,71 +332,39 @@ html {
   font-family: monospace;
   color: #666;
   min-width: 150px;
-}
-
-#map {
-  width: 100%;
-  height: 300px;
-  margin: 20px 0;
-}
-
-.location-search-container {
-  margin: 20px 0;
-  display: flex;
-  gap: 10px;
-}
-
-#location-search {
-  flex: 1;
-  padding: 8px;
-}
-
-#search-button {
-  padding: 8px 16px;
+  margin-left: auto;  /* Push to right before the time input */
+  margin-right: 5px;
 }
 
 /* Add these new styles */
 .content-wrapper {
   display: flex;
   gap: 20px;
-  margin: 20px 0;
-}
-
-.new-inputs-section {
-  flex: 0 0 auto;  /* Don't grow or shrink */
-  width: 600px;    /* Adjust this width as needed */
-}
-
-.map-section {
-  flex: 0 0 300px;  /* Fixed width instead of flex-grow */
-  display: flex;
-  flex-direction: column;
-  height: 300px;    /* Reduced height */
-  margin-top: 20px;
-  padding-top: 0;  /* Remove top padding */
-}
-
-#table-container {
-  clear: both;     /* Ensure it starts below both columns */
-  margin-top: 20px;
+  margin: 0 2px;
+  padding: 0 2px;
 }
 
 /* Update existing map styles */
 #map {
   flex: 1;
-  min-height: 200px;  /* Reduced minimum height */
+  min-height: 200px;
   width: 100%;
   border: 1px solid #ccc;
   border-radius: 4px;
-  margin: 10px 0 0 0;  /* Add space between search and map */
+  margin: 10px 0 0 0;
+  width: 100%;
+  min-height: 300px;
+  max-height: 400px;
 }
 
 .location-search-container {
   display: flex;
   gap: 10px;
   margin-bottom: 10px;
-  margin-top: 0;  /* Remove top margin */
-  padding-top: 0;  /* Remove top padding */
+  margin-top: 0;
+  padding-top: 0;
+  width: 100%;
+  margin-bottom: 10px;
 }
 
 /* Add these styles to hide the table but keep functionality */
@@ -352,10 +388,10 @@ html {
 
 /* Add styling for the new calculated outputs section */
 .calculated-outputs-section {
-  flex: 0 0 300px;  /* Don't grow or shrink, fixed width */
-  padding: 15px;
+  padding: 20px;
+  margin: 10px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 5px;
   background-color: #f9f9f9;
 }
 
@@ -373,21 +409,21 @@ html {
 /* Add/update these styles */
 .svg-diagram-section {
   display: flex;
-  gap: 20px;  /* Space between diagrams */
-  justify-content: center;  /* Center the diagrams horizontally */
+  gap: 20px;
+  justify-content: center;
   margin-top: 20px;
-  flex-wrap: wrap;  /* Allow wrapping for better responsive layout */
-  padding: 20px;  /* Add padding around diagrams */
+  flex-wrap: wrap;
+  padding: 20px;
 }
 
 #solar-altitude-diagram {
-  flex: 0 0 auto;  /* Don't grow or shrink */
-  background-color: #f0f0f0;  /* Light background */
-  min-width: 400px;  /* Match the SVG width */
-  border-radius: 4px;  /* Matching the map style */
-  border: 1px solid #ccc;  /* Matching the map style */
-  padding: 10px;  /* Add padding inside containers */
-  min-height: 300px; /* Match the SVG height */
+  flex: 0 0 auto;
+  background-color: #f0f0f0;
+  min-width: 400px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  min-height: 300px;
 }
 
 #arc-test-section {
@@ -426,7 +462,7 @@ input#solar-zenith-output {
     width: 80px !important;
     min-width: 80px !important;
     max-width: 80px !important;
-    margin-left: 150px !important;  /* Match the position of latitude-overhead-input */
+    margin-left: 150px !important;
 }
 
 /* Set fixed width for time input fields */
@@ -449,21 +485,7 @@ input#local-time {
 /* Reset slider width to original size */
 input[type="range"]#location-latitude-slider,
 input[type="range"]#location-longitude-slider {
-    width: 150px !important;  /* Return to original wider size */
-}
-
-.calculated-outputs-section {
-  padding: 20px;
-  margin: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-.calculated-outputs-section h2 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  font-size: 1.2em;
-  color: #333;
+    width: 150px !important;
 }
 
 /* Inputs wrapper section styling */
@@ -472,6 +494,7 @@ input[type="range"]#location-longitude-slider {
     margin: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    margin-bottom: 20px;
 }
 
 .inputs-wrapper-section h2 {
@@ -479,26 +502,23 @@ input[type="range"]#location-longitude-slider {
     margin-bottom: 15px;
     font-size: 1.2em;
     color: #333;
-    font-family: Arial, Helvetica, sans-serif;
-    font-weight: 300;
-    letter-spacing: 1px;
 }
 
 .inputs-container {
     display: flex;
-    gap: 20px;
+    gap: 5px;
     flex-wrap: nowrap;
     width: 100%;
 }
 
 .inputs-container .new-inputs-section {
-    flex: 0 1 auto;
+    flex: 1;
 }
 
 .inputs-container .map-section {
-    flex: 0 0 400px;  /* Fixed width for map section */
-    min-width: 400px;
-    margin-top: -20px;  /* Negative margin to align with first input */
+    flex: 1;
+    min-width: 300px;
+    max-width: 500px;
 }
 
 #map {
@@ -510,6 +530,8 @@ input[type="range"]#location-longitude-slider {
     margin-bottom: 10px;
     display: flex;
     gap: 5px;
+    width: 100%;
+    margin-bottom: 10px;
 }
 
 #location-search {
@@ -544,6 +566,7 @@ input[type="range"]#location-longitude-slider {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin: 5px 0;
 }
 
 .outputs-container div {
@@ -551,16 +574,93 @@ input[type="range"]#location-longitude-slider {
     display: flex;
     align-items: center;
     gap: 5px;
-    padding-right: 30px;  /* Make room for help icon */
+    padding-right: 30px;
 }
 
 .outputs-container label {
-    width: 340px;
-    margin-right: 10px;
-    font-family: inherit;
+    min-width: 150px;
+    max-width: 250px;
+    width: auto;
+    flex: 1;
 }
 
 .outputs-container input {
+    width: 80px;
+    flex: 0 0 auto;
+}
+
+/* New inputs section adjustments */
+.new-inputs-section {
+    padding-left: 2px;  /* Reduced left padding */
+}
+
+.new-inputs-section input[type="number"] {
+    width: 80px;
+}
+
+.new-inputs-section div:has(input[type="range"]) {
+    width: 450px;
+}
+
+.new-inputs-section div:has(#local-time) {
+    width: 450px;
+}
+
+/* Date input specific styling */
+#selected-date {
+    margin-left: auto;  /* Push to align with other fields */
+    width: 130px;
+}
+
+.new-inputs-section div:has(#selected-date) {
+    display: flex;
+    justify-content: space-between;
+    width: 450px;
+}
+
+.new-inputs-section input[type="time"] {
     width: 100px;
-    font-weight: bold;
+}
+
+/* Latitude and longitude input container specific styling */
+.new-inputs-section div:has(#location-latitude-input),
+.new-inputs-section div:has(#location-longitude-input) {
+    display: flex;
+    justify-content: flex-start;
+    gap: 5px;
+}
+
+/* Push number inputs to align with other fields */
+#location-latitude-input,
+#location-longitude-input {
+    margin-left: auto;  /* Push to align with other fields */
+    width: 80px;
+}
+
+/* Ensure sliders don't affect alignment */
+.new-inputs-section input[type="range"] {
+    flex: 0 0 90px;
+    margin-right: 5px;
+}
+
+/* Common container styling */
+.new-inputs-section div {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 450px;
+    margin-bottom: 10px;
+    padding-right: 15px;
+}
+
+/* Media query for smaller screens */
+@media (max-width: 768px) {
+    .inputs-container {
+        flex-direction: column;
+    }
+    
+    .new-inputs-section,
+    .map-section {
+        max-width: 100%;
+    }
 }
