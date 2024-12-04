@@ -1,3 +1,8 @@
+/* Ensure consistent box model */
+* {
+    box-sizing: border-box;
+}
+
 /* Header styling similar to the Atmospheric Pressure Visualizer */
 header {
   text-align: center;
@@ -20,60 +25,71 @@ header p {
   font-size: 1.1em;
 }
 
-
-
 /* New Structure Styles */
 .outer-wrapper {
-  margin: 0; /* Remove any default margins */
-  padding: 5px; /* Optional internal spacing */
-  width: calc(100% - 10px); /* Account for padding if necessary */
-  display: flex;
-  flex-wrap: wrap;
+    margin: 0;
+    padding: 5px;
+    width: calc(100% - 10px);
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .inner-wrapper {
     display: flex;
-    flex-wrap: wrap;
-    flex: 2;
+    flex-direction: column;
     gap: 10px;
 }
 
 .section-title {
-    width: 100%;
     font-size: 1.2rem;
     font-weight: bold;
     margin-bottom: 10px;
 }
 
+/* Shared styles for input sections */
 .input-fields,
 .latitude-finder {
     flex: 1;
     min-width: 200px;
     padding: 10px;
+    margin: 2px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    background-color: #f9f9f9;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
-.calculated-inputs {
-    flex: 1;
-    min-width: 200px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+.input-fields {
+    border: 2px dashed green;
 }
 
+.latitude-finder {
+    border: 2px dashed red;
+}
+
+/* Wrapper for input sections */
+.input-sections {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 0;
+    margin: 0;
+    border: 2px solid orange;
+}
+
+/* Adjust layout for narrower screens */
 @media (max-width: 800px) {
-    .inner-wrapper {
+    .input-sections {
         flex-direction: column;
     }
-    .latitude-finder {
-        order: -1;
-    }
-}
 
-@media (max-width: 500px) {
-    .outer-wrapper {
-        flex-direction: column;
+    .latitude-finder {
+        order: 1;
+    }
+
+    .input-fields {
+        order: 2;
     }
 }
 
@@ -242,7 +258,7 @@ header p {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  border-radius: 20px;  /* Add rounded ends */
+  border-radius: 20px;
 }
 
 .expand-button:hover {
@@ -254,11 +270,11 @@ header p {
   display: inline-block;
   width: 10px;
   transition: transform 0.3s ease;
-  transform: rotate(-90deg);  /* Start rotated up */
+  transform: rotate(-90deg);
 }
 
 .data-table-section.expanded .expand-button::before {
-  transform: rotate(90deg);  /* Keep rotating to down when expanded */
+  transform: rotate(90deg);
 }
 
 /* Always show vertical scrollbar */
@@ -293,7 +309,7 @@ html {
 
 /* Input fields common styles */
 .new-inputs-section input[type="range"] {
-    flex: 0 0 90px;  /* Reduced from flex: 1 to fixed width */
+    flex: 0 0 90px;
     min-width: 90px;
     margin-right: 5px;
 }
@@ -318,22 +334,22 @@ html {
 
 /* Style for the slider inputs */
 .new-inputs-section div input[type="range"] {
-    -webkit-appearance: slider-horizontal !important;  /* For Safari */
+    -webkit-appearance: slider-horizontal !important;
 }
 
 /* Target Webkit browsers specifically */
 .new-inputs-section div input[type="range"]::-webkit-slider-runnable-track {
-    width: 90px !important;  /* Reduced from previous value */
+    width: 90px !important;
 }
 
 /* Target Firefox */
 .new-inputs-section div input[type="range"]::-moz-range-track {
-    width: 90px !important;  /* Reduced from previous value */
+    width: 90px !important;
 }
 
 /* Target IE/Edge */
 .new-inputs-section div input[type="range"]::-ms-track {
-    width: 90px !important;  /* Reduced from previous value */
+    width: 90px !important;
 }
 
 /* Add specific styling for date and time inputs */
@@ -347,15 +363,15 @@ html {
 .new-inputs-section input[type="time"] {
     margin: 0;
     padding: 4px;
-    width: 100px;  /* Set fixed width for both time inputs */
+    width: 100px;
 }
 
 .new-inputs-section div:has(#solar-time) {
-    padding-left: 0;  /* Remove the previous padding */
+    padding-left: 0;
 }
 
 #solar-time {
-    margin-left: 154px !important;  /* Add margin to just the input field */
+    margin-left: 154px !important;
 }
 
 #eot-display {
@@ -368,20 +384,20 @@ html {
   font-family: monospace;
   color: #666;
   min-width: 150px;
-  margin-left: auto;  /* Push to right before the time input */
+  margin-left: auto;
   margin-right: 5px;
 }
 
 body {
-  margin: 0; /* Removes default margin */
-  padding: 0; /* Removes default padding */
+  margin: 0;
+  padding: 0;
 }
 
 /* Add these new styles */
 html, body {
   margin: 0;
   padding: 0;
-  width: 100%; /* Ensure full width usage */
+  width: 100%;
 }
 
 
@@ -625,7 +641,7 @@ input[type="range"]#location-longitude-slider {
 
 /* New inputs section adjustments */
 .new-inputs-section {
-    padding-left: 2px;  /* Reduced left padding */
+    padding-left: 2px;
 }
 
 .new-inputs-section input[type="number"] {
@@ -642,7 +658,7 @@ input[type="range"]#location-longitude-slider {
 
 /* Date input specific styling */
 #selected-date {
-    margin-left: auto;  /* Push to align with other fields */
+    margin-left: auto;
     width: 130px;
 }
 
@@ -667,7 +683,7 @@ input[type="range"]#location-longitude-slider {
 /* Push number inputs to align with other fields */
 #location-latitude-input,
 #location-longitude-input {
-    margin-left: auto;  /* Push to align with other fields */
+    margin-left: auto;
     width: 80px;
 }
 
@@ -685,15 +701,6 @@ input[type="range"]#location-longitude-slider {
     width: 450px;
     margin-bottom: 10px;
     padding-right: 15px;
-}
-
-/* Latitude finder section positioning */
-.latitude-finder {
-    margin-left: -20px;  /* Shift section to the left */
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f9f9f9;
 }
 
 /* Media query for smaller screens */
@@ -733,7 +740,7 @@ input[type="range"]#location-longitude-slider {
 main {
   margin: 10px;
   padding: 0;
-  width: 100%; /* Full width of the viewport */
+  width: 100%;
 }
 
 
@@ -748,9 +755,9 @@ main {
     */
 
 .content-wrapper {
-  margin: 5px; /* Remove any automatic centering */
-  padding: 5px; /* Remove extra padding */
-  width: 100%; /* Ensure it spans the full width */
+  margin: 5px;
+  padding: 5px;
+  width: 100%;
 }
 
 
