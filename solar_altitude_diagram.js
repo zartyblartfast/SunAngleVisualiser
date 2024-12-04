@@ -239,7 +239,7 @@ export function createSolarAltitudeDiagram(latitude) {
     radiusLine.setAttribute("x2", centerX + radius * Math.cos(latitude * Math.PI / 180));
     radiusLine.setAttribute("y2", latitudeY);
     radiusLine.setAttribute("stroke", "red");
-    radiusLine.setAttribute("stroke-width", SCALE_FACTOR);
+    radiusLine.setAttribute("stroke-width", 2.5 * SCALE_FACTOR);  // Increased from 1 to 2.5 to match tangent line
     svg.appendChild(radiusLine);
 
     // Draw central angle between equator and radius line
@@ -307,8 +307,8 @@ export function createSolarAltitudeDiagram(latitude) {
     tangentLine.setAttribute("x2", tangentStartX + tangentLength * Math.sin(tangentAngle)); // Changed to sin
     tangentLine.setAttribute("y2", tangentStartY + tangentLength * Math.cos(tangentAngle)); // Changed to cos
     tangentLine.setAttribute("stroke", "green");
-    tangentLine.setAttribute("stroke-width", SCALE_FACTOR);
-    tangentLine.setAttribute("stroke-dasharray", `${2 * SCALE_FACTOR},${2 * SCALE_FACTOR}`);
+    tangentLine.setAttribute("stroke-width", 2.5 * SCALE_FACTOR);  // Increased from 1 to 2.5
+    tangentLine.setAttribute("stroke-dasharray", `${4 * SCALE_FACTOR},${3 * SCALE_FACTOR}`);  // Adjusted dash pattern for better visibility
     svg.appendChild(tangentLine);
 
     console.log('1. Reading solar elevation:', {
