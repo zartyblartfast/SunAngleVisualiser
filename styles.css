@@ -562,4 +562,5 @@ input[type="range"]#location-longitude-slider {
 
 .outputs-container input {
     width: 100px;
+    font-weight: bold;
 }
