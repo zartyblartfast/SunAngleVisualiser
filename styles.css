@@ -347,6 +347,26 @@ html {
   display: none;
 }
 
+/* Add styling for the new calculated outputs section */
+.calculated-outputs-section {
+  flex: 0 0 300px;  /* Don't grow or shrink, fixed width */
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+}
+
+.calculated-outputs-section h2 {
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+  color: #333;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 300;
+  letter-spacing: 1px;
+}
+
 /* Add/update these styles */
 .svg-diagram-section {
   display: flex;
@@ -427,4 +447,18 @@ input#local-time {
 input[type="range"]#location-latitude-slider,
 input[type="range"]#location-longitude-slider {
     width: 150px !important;  /* Return to original wider size */
+}
+
+.calculated-outputs-section {
+  padding: 20px;
+  margin: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.calculated-outputs-section h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+  color: #333;
 }
