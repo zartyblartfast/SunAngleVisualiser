@@ -34,9 +34,31 @@
                 </div>
             </div>
         </div>
-        <div class="calculated-inputs">
-            <div class="section-title">Calculated Inputs</div>
-            <!-- Add calculated input content here -->
+        <div class="calculated-outputs">
+            <div class="section-title">Calculated Outputs</div>
+            <div class="outputs-container">
+                <div>
+                    <label for="solar-elevation-output">Solar Elevation/Altitude (degrees):</label>
+                    <input type="number" id="solar-elevation-output" disabled value="0" step="0.1">
+                    <span class="help-icon" data-help="The angle between the horizon (tangent line) and the sun's position in the sky. Positive values indicate the sun is above the horizon, negative values indicate the sun is below the horizon.">
+                        <i class="fas fa-question-circle"></i>
+                    </span>
+                </div>
+                <div>
+                    <label for="solar-azimuth-output">Solar Azimuth (degrees):</label>
+                    <input type="text" id="solar-azimuth-output" disabled>
+                    <span class="help-icon" data-help="The horizontal angle of the sun measured clockwise from true North. 0° is North, 90° is East, 180° is South, and 270° is West.">
+                        <i class="fas fa-question-circle"></i>
+                    </span>
+                </div>
+                <div>
+                    <label for="solar-zenith-output">Solar Zenith (degrees):</label>
+                    <input type="text" id="solar-zenith-output" disabled>
+                    <span class="help-icon" data-help="The angle between the sun and the vertical (zenith). 0° means the sun is directly overhead, 90° means the sun is at the horizon.">
+                        <i class="fas fa-question-circle"></i>
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
     <div class="content-wrapper">
@@ -102,34 +124,6 @@
                     </div>
                     <div id="map"></div>
                 </section>
-            </div>
-        </section>
-    
-        <!-- Calculated Outputs Section -->
-        <section class="calculated-outputs-section">
-            <h2>Calculated Outputs</h2>
-            <div class="outputs-container">
-                <div>
-                    <label for="solar-elevation-output">Solar Elevation/Altitude (degrees):</label>
-                    <input type="number" id="solar-elevation-output" disabled value="0" step="0.1">
-                    <span class="help-icon" data-help="The angle between the horizon (tangent line) and the sun's position in the sky. Positive values indicate the sun is above the horizon, negative values indicate the sun is below the horizon.">
-                        <i class="fas fa-question-circle"></i>
-                    </span>
-                </div>
-                <div>
-                    <label for="solar-azimuth-output">Solar Azimuth (degrees):</label>
-                    <input type="text" id="solar-azimuth-output" disabled>
-                    <span class="help-icon" data-help="The horizontal angle of the sun measured clockwise from true North. 0° is North, 90° is East, 180° is South, and 270° is West.">
-                        <i class="fas fa-question-circle"></i>
-                    </span>
-                </div>
-                <div>
-                    <label for="solar-zenith-output">Solar Zenith (degrees):</label>
-                    <input type="text" id="solar-zenith-output" disabled>
-                    <span class="help-icon" data-help="The angle between the sun and the vertical (zenith). 0° means the sun is directly overhead, 90° means the sun is at the horizon.">
-                        <i class="fas fa-question-circle"></i>
-                    </span>
-                </div>
             </div>
         </section>
     </div>

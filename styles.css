@@ -297,137 +297,6 @@ html {
     padding: 0 15px;
 }
 
-/* Calculated outputs section */
-.calculated-outputs-section {
-    max-width: 950px;
-    margin: 0 auto 5px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: #f9f9f9;
-}
-
-/* Input fields common styles */
-.new-inputs-section input[type="range"] {
-    flex: 0 0 90px;
-    min-width: 90px;
-    margin-right: 5px;
-}
-
-.new-inputs-section input[type="number"],
-.new-inputs-section input[type="time"],
-.new-inputs-section input[type="date"],
-.outputs-container input {
-    width: 80px;
-    flex: 0 0 auto;
-}
-
-/* Label styles */
-.new-inputs-section label,
-.outputs-container label {
-    min-width: 150px;
-    max-width: 250px;
-    width: auto;
-    flex: 1;
-    margin-right: 5px;
-}
-
-/* Style for the slider inputs */
-.new-inputs-section div input[type="range"] {
-    -webkit-appearance: slider-horizontal !important;
-}
-
-/* Target Webkit browsers specifically */
-.new-inputs-section div input[type="range"]::-webkit-slider-runnable-track {
-    width: 90px !important;
-}
-
-/* Target Firefox */
-.new-inputs-section div input[type="range"]::-moz-range-track {
-    width: 90px !important;
-}
-
-/* Target IE/Edge */
-.new-inputs-section div input[type="range"]::-ms-track {
-    width: 90px !important;
-}
-
-/* Add specific styling for date and time inputs */
-.new-inputs-section input[type="date"],
-.new-inputs-section input[type="time"] {
-    max-width: 170px;
-    padding: 5px;
-    margin-left: 0;
-}
-
-.new-inputs-section input[type="time"] {
-    margin: 0;
-    padding: 4px;
-    width: 100px;
-}
-
-.new-inputs-section div:has(#solar-time) {
-    padding-left: 0;
-}
-
-#solar-time {
-    margin-left: 154px !important;
-}
-
-#eot-display {
-  display: inline-block;
-  white-space: nowrap;
-  text-align: right;
-  margin: 0;
-  margin-right: 4px;
-  padding: 0;
-  font-family: monospace;
-  color: #666;
-  min-width: 150px;
-  margin-left: auto;
-  margin-right: 5px;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-}
-
-/* Add these new styles */
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-}
-
-
-.content-wrapper {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 20px;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-/* Inputs wrapper section */
-.inputs-wrapper-section {
-    flex: 0 0 800px;
-    display: flex;
-    flex-direction: column;
-}
-
-.inputs-container {
-    display: flex;
-    gap: 20px;
-}
-
-/* Input section sizing */
-.new-inputs-section {
-    flex: 0 0 500px;
-    padding: 0 15px;
-}
-
 /* Map section sizing */
 .map-section {
     flex: 0 0 250px;
@@ -743,23 +612,15 @@ main {
   width: 100%;
 }
 
-
 /* Content wrapper */
-/*
 .content-wrapper {
     display: flex;
     flex-wrap: nowrap;
     gap: 20px;
     width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
 }
-    */
-
-.content-wrapper {
-  margin: 5px;
-  padding: 5px;
-  width: 100%;
-}
-
 
 /* Inputs wrapper section */
 .inputs-wrapper-section {
@@ -782,6 +643,7 @@ main {
 /* Calculated outputs section */
 .calculated-outputs-section {
     flex: 0 0 350px;
+    margin: 10px;
 }
 
 /* Media query for smaller screens */
@@ -798,4 +660,117 @@ main {
     .calculated-outputs-section {
         flex: 0 0 300px;
     }
+}
+
+/* Calculated outputs styling */
+.calculated-outputs .outputs-container > div {
+    margin-left: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.calculated-outputs label {
+    margin-left: 5px;
+    min-width: 150px;
+    max-width: 250px;
+    width: auto;
+    flex: 1;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Add these new styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+/* Input fields common styles */
+.new-inputs-section input[type="range"] {
+    flex: 0 0 90px;
+    min-width: 90px;
+    margin-right: 5px;
+}
+
+.new-inputs-section input[type="number"],
+.new-inputs-section input[type="time"],
+.new-inputs-section input[type="date"],
+.outputs-container input {
+    width: 80px;
+    flex: 0 0 auto;
+}
+
+/* Label styles */
+.new-inputs-section label,
+.outputs-container label {
+    min-width: 150px;
+    max-width: 250px;
+    width: auto;
+    flex: 1;
+    margin-right: 5px;
+}
+
+/* Calculated outputs styling */
+.calculated-outputs label {
+    margin-left: 5px;
+}
+
+/* Style for the slider inputs */
+.new-inputs-section div input[type="range"] {
+    -webkit-appearance: slider-horizontal !important;
+}
+
+/* Target Webkit browsers specifically */
+.new-inputs-section div input[type="range"]::-webkit-slider-runnable-track {
+    width: 90px !important;
+}
+
+/* Target Firefox */
+.new-inputs-section div input[type="range"]::-moz-range-track {
+    width: 90px !important;
+}
+
+/* Target IE/Edge */
+.new-inputs-section div input[type="range"]::-ms-track {
+    width: 90px !important;
+}
+
+/* Add specific styling for date and time inputs */
+.new-inputs-section input[type="date"],
+.new-inputs-section input[type="time"] {
+    max-width: 170px;
+    padding: 5px;
+    margin-left: 0;
+}
+
+.new-inputs-section input[type="time"] {
+    margin: 0;
+    padding: 4px;
+    width: 100px;
+}
+
+.new-inputs-section div:has(#solar-time) {
+    padding-left: 0;
+}
+
+#solar-time {
+    margin-left: 154px !important;
+}
+
+#eot-display {
+    display: inline-block;
+    white-space: nowrap;
+    text-align: right;
+    margin: 0;
+    margin-right: 4px;
+    padding: 0;
+    font-family: monospace;
+    color: #666;
+    min-width: 150px;
+    margin-left: auto;
+    margin-right: 5px;
 }
