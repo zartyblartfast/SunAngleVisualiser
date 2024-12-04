@@ -268,7 +268,7 @@ html {
 
 #map {
   width: 100%;
-  height: 400px;
+  height: 300px;
   margin: 20px 0;
 }
 
@@ -461,4 +461,50 @@ input[type="range"]#location-longitude-slider {
   margin-bottom: 15px;
   font-size: 1.2em;
   color: #333;
+}
+
+/* Inputs wrapper section styling */
+.inputs-wrapper-section {
+    padding: 20px;
+    margin: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.inputs-wrapper-section h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+    color: #333;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 300;
+    letter-spacing: 1px;
+}
+
+.inputs-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: nowrap;
+    width: 100%;
+}
+
+.inputs-container .new-inputs-section {
+    flex: 0 1 auto;
+}
+
+.inputs-container .map-section {
+    flex: 0 0 400px;  /* Fixed width for map section */
+    min-width: 400px;
+}
+
+#map {
+    width: 100%;
+    height: 300px;
+}
+
+/* Ensure existing sections maintain their styles within the wrapper */
+.inputs-container .new-inputs-section,
+.inputs-container .map-section {
+    margin: 0;
+    padding: 0;
 }
