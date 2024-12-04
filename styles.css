@@ -20,6 +20,63 @@ header p {
   font-size: 1.1em;
 }
 
+
+
+/* New Structure Styles */
+.outer-wrapper {
+  margin: 0; /* Remove any default margins */
+  padding: 5px; /* Optional internal spacing */
+  width: calc(100% - 10px); /* Account for padding if necessary */
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.inner-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    flex: 2;
+    gap: 10px;
+}
+
+.section-title {
+    width: 100%;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.input-fields,
+.latitude-finder {
+    flex: 1;
+    min-width: 200px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.calculated-inputs {
+    flex: 1;
+    min-width: 200px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+@media (max-width: 800px) {
+    .inner-wrapper {
+        flex-direction: column;
+    }
+    .latitude-finder {
+        order: -1;
+    }
+}
+
+@media (max-width: 500px) {
+    .outer-wrapper {
+        flex-direction: column;
+    }
+}
+
 /* Add spacing above the first row and below the header section */
 .new-inputs-section {
   margin-top: 20px;
@@ -205,10 +262,11 @@ header p {
 }
 
 /* Always show vertical scrollbar */
+/*
 html {
   overflow-y: scroll;
 }
-
+*/
 /* Input container layout */
 .inputs-container {
     display: flex;
@@ -314,12 +372,18 @@ html {
   margin-right: 5px;
 }
 
-/* Add these new styles */
-main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
+body {
+  margin: 0; /* Removes default margin */
+  padding: 0; /* Removes default padding */
 }
+
+/* Add these new styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%; /* Ensure full width usage */
+}
+
 
 .content-wrapper {
     display: flex;
@@ -667,18 +731,28 @@ input[type="range"]#location-longitude-slider {
 
 /* Main content layout */
 main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
+  margin: 10px;
+  padding: 0;
+  width: 100%; /* Full width of the viewport */
 }
 
+
 /* Content wrapper */
+/*
 .content-wrapper {
     display: flex;
     flex-wrap: nowrap;
     gap: 20px;
     width: 100%;
 }
+    */
+
+.content-wrapper {
+  margin: 5px; /* Remove any automatic centering */
+  padding: 5px; /* Remove extra padding */
+  width: 100%; /* Ensure it spans the full width */
+}
+
 
 /* Inputs wrapper section */
 .inputs-wrapper-section {
