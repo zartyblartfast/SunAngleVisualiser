@@ -88,7 +88,8 @@ header p {
 
 .input-fields input[type="number"],
 .input-fields input[type="time"],
-.input-fields input[type="date"] {
+.input-fields input[type="date"],
+.input-fields input[disabled] {
     width: 80px;
     flex: 0 0 auto;
 }
@@ -859,9 +860,86 @@ html, body {
     margin-right: 5px;
 }
 
+/* Align specific output fields */
+.input-fields #solar-elevation-output,
+.input-fields #solar-azimuth-output,
+.input-fields #solar-zenith-output {
+    width: 80px;
+    margin-left: auto;
+    margin-right: 5px;
+}
+
+/* Align output fields with other input fields */
+.input-fields div:has([id$="-output"]) {
+    display: flex;
+    align-items: center;
+}
+
+.input-fields div:has([id$="-output"]) input {
+    width: 80px;
+    margin-left: auto;
+    margin-right: 5px;
+}
+
+.input-fields div:has([id$="-output"]) {
+    display: flex;
+    align-items: center;
+}
+
+.input-fields div:has([id$="-output"]) input {
+    width: 80px;
+    margin-left: auto;
+    margin-right: 5px;
+}
+
 /* Specific handling for date field */
 .input-fields div:has(#selected-date) input[type="date"] {
     width: 105px;  
     margin-left: auto;
     margin-right: 5px;
+}
+
+/* Align output fields within input-fields */
+.input-fields div:has([id$="-output"]) {
+    display: flex;
+    align-items: center;
+}
+
+.input-fields div:has([id$="-output"]) input {
+    width: 80px;
+    margin-left: auto;
+    margin-right: 5px;
+}
+
+/* Align all input fields and outputs in input-fields consistently */
+.input-fields div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-right: 25px;
+}
+
+.input-fields label {
+    min-width: 150px;
+    text-align: left;
+}
+
+.input-fields input[type="number"],
+.input-fields input[type="text"],
+.input-fields input[type="date"],
+.input-fields input[type="time"],
+.input-fields input[disabled] {
+    width: 80px;
+    margin-left: auto;
+}
+
+/* Styling for section titles inside input-fields */
+.input-fields .section-title {
+    text-align: left;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #333;
+    padding-left: 0;
 }
