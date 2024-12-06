@@ -1,11 +1,11 @@
 @font-face {
   font-family: 'pd-icons';
-  src: url('./pd-icons.eot?83977239');
-  src: url('./pd-icons.eot?83977239#iefix') format('embedded-opentype'),
-       url('./pd-icons.woff2?83977239') format('woff2'),
-       url('./pd-icons.woff?83977239') format('woff'),
-       url('./pd-icons.ttf?83977239') format('truetype'),
-       url('./pd-icons.svg?83977239#pd-icons') format('svg');
+  src: url('../fonts/pd-icons.eot?83977239');
+  src: url('../fonts/pd-icons.eot?83977239#iefix') format('embedded-opentype'),
+       url('../fonts/pd-icons.woff2?83977239') format('woff2'),
+       url('../fonts/pd-icons.woff?83977239') format('woff'),
+       url('../fonts/pd-icons.ttf?83977239') format('truetype'),
+       url('../fonts/pd-icons.svg?83977239#pd-icons') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -15,7 +15,7 @@
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'pd-icons';
-    src: url('./pd-icons.svg?83977239#pd-icons') format('svg');
+    src: url('../fonts/pd-icons.svg?83977239#pd-icons') format('svg');
   }
 }
 */
